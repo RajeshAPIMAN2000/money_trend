@@ -2,8 +2,11 @@ import HeroBanner from '../components/common/HeroBanner.jsx'
 import MarketTicker from '../components/common/MarketTicker.jsx'
 import HomeMiddleSections from '../components/home/HomeMiddleSections.jsx'
 import Aurora from '../components/react-bits/Aurora.jsx'
+import { useHomeData } from '../hooks/useHomeData.js'
 
 export default function Home() {
+  const homeData = useHomeData()
+
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <Aurora
@@ -14,8 +17,8 @@ export default function Home() {
       />
       <div className="relative z-10">
         <HeroBanner />
-        <MarketTicker />
-        <HomeMiddleSections />
+        <MarketTicker items={homeData.tickerItems} loading={homeData.loading} />
+        <HomeMiddleSections {...homeData} />
       </div>
     </div>
   )

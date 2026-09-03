@@ -34,6 +34,18 @@ h1, h2, h3, h4, h5, h6 { font-family: 'Bricolage Grotesque', sans-serif; letter-
   animation: fadeIn 0.5s ease-out forwards;
 }
 
+/* Recharts — keep charts inside their containers */
+.recharts-responsive-container {
+  position: relative !important;
+}
+
 /* scrollbar tidy */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+/* Admin panel scrollbar */
+.admin-scrollbar::-webkit-scrollbar { width: 4px; }
+.admin-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+/* Dark mode chart grid fix */
+.dark .recharts-cartesian-grid line { stroke: #334155; }

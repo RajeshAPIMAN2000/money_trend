@@ -6,6 +6,8 @@ import Sidebar from '../components/common/Sidebar.jsx'
 import Card from '../components/ui/Card.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import PageSideLayout from '../components/common/PageSideLayout.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
+import { Link } from 'react-router-dom'
 
 function HealthScore() {
   const subs = [['Savings Rate', 85], ['Investment Mix', 72], ['Debt Load', 90], ['Emergency Fund', 65]]
@@ -37,6 +39,8 @@ function HealthScore() {
 }
 
 export default function Dashboard() {
+  const { user, isKycApproved } = useAuth()
+
   return (
     <>
       <PageBanner {...getPageBanner('dashboard')} />
@@ -44,6 +48,31 @@ export default function Dashboard() {
       <div className="flex gap-6">
       <Sidebar />
       <div className="flex-1 min-w-0 space-y-6">
+        {user && !isKycApproved && (
+          <div className={`rounded-card p-4 border ${
+            user.kyc_status === 'pending' ? 'bg-amber-50 border-amber-200' :
+            user.kyc_status === 'rejected' ? 'bg-red-50 border-red-200' :
+            'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold text-primary text-sm">
+                  {user.kyc_status === 'pending' && 'KYC Under Review'}
+                  {user.kyc_status === 'rejected' && 'KYC Rejected — Action Required'}
+                  {user.kyc_status === 'not_started' && 'Complete Your KYC'}
+                </p>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Investment features are locked until your KYC is approved.
+                </p>
+              </div>
+              {user.kyc_status !== 'pending' && (
+                <Link to="/onboarding/kyc/manual" className="text-sm font-semibold text-secondary hover:underline whitespace-nowrap">
+                  {user.kyc_status === 'rejected' ? 'Resubmit KYC' : 'Start KYC'} →
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
         <div className="grid lg:grid-cols-3 gap-5">
           <Card className="lg:col-span-2 bg-gradient-to-br from-primary to-secondary text-white">
             <div className="text-sm text-white/70">Net Worth</div>

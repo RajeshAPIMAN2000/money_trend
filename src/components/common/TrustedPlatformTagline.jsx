@@ -2,7 +2,7 @@ const GOLD = '#A68B5B'
 
 const DEFAULT = {
   headline: "India's most trusted platform",
-  subline: 'For Fixed Deposits · Recurring Deposits · Mutual Funds',
+  subline: 'For Fixed Deposits · Recurring Deposits',
   footer: 'Zero commission · Full transparency',
 }
 

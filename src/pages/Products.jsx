@@ -4,6 +4,7 @@ import { products, PRODUCT_CATEGORIES } from '../data/products-data.js'
 import { getPageBanner } from '../data/page-banners.js'
 import PageBanner from '../components/common/PageBanner.jsx'
 import CivilScoreChecker from '../components/home/CivilScoreChecker.jsx'
+import { useCibilCheck } from '../context/CibilCheckContext.jsx'
 
 const productIcons = {
   'fixed-deposits': (
@@ -12,12 +13,12 @@ const productIcons = {
   'recurring-deposits': (
     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
   ),
-  'mutual-funds': (
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-  ),
-  sip: (
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 12H18M7.757 14.743l-1.59 1.59M6 12H4.5m12.002-3.658-1.591-1.591M12 18.75V21m-4.773-4.227-1.59 1.59M5.25 12l-1.591-1.591M12 5.25l1.591-1.591" />
-  ),
+  // 'mutual-funds': (
+  //   <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+  // ),
+  // sip: (
+  //   <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 12H18M7.757 14.743l-1.59 1.59M6 12H4.5m12.002-3.658-1.591-1.591M12 18.75V21m-4.773-4.227-1.59 1.59M5.25 12l-1.591-1.591M12 5.25l1.591-1.591" />
+  // ),
   'civil-score': (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
   ),
@@ -54,7 +55,7 @@ function StarRating({ rating }) {
   )
 }
 
-function ProductCard({ product }) {
+function ProductCard({ product, onCheckCibil }) {
   const riskColors = {
     Low: 'bg-emerald-50 text-emerald-700',
     Moderate: 'bg-amber-50 text-amber-700',
@@ -95,19 +96,31 @@ function ProductCard({ product }) {
         </div>
       </div>
 
-      <Link
-        to={product.to}
-        className="mt-5 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 border-[#0056D2]/20 text-[#0056D2] hover:bg-[#0056D2] hover:text-white hover:border-[#0056D2] transition-all"
-      >
-        {product.cta}
-        <span aria-hidden>→</span>
-      </Link>
+      {product.id === 'civil-score' ? (
+        <button
+          type="button"
+          onClick={onCheckCibil}
+          className="mt-5 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 border-[#0056D2]/20 text-[#0056D2] hover:bg-[#0056D2] hover:text-white hover:border-[#0056D2] transition-all"
+        >
+          {product.cta}
+          <span aria-hidden>→</span>
+        </button>
+      ) : (
+        <Link
+          to={product.to}
+          className="mt-5 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 border-[#0056D2]/20 text-[#0056D2] hover:bg-[#0056D2] hover:text-white hover:border-[#0056D2] transition-all"
+        >
+          {product.cta}
+          <span aria-hidden>→</span>
+        </Link>
+      )}
     </article>
   )
 }
 
 export default function Products() {
   const [category, setCategory] = useState('All')
+  const { openCibilCheck } = useCibilCheck()
   const banner = getPageBanner('products')
 
   const filtered = category === 'All'
@@ -151,7 +164,7 @@ export default function Products() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map(p => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} onCheckCibil={openCibilCheck} />
             ))}
           </div>
         </section>
@@ -160,7 +173,7 @@ export default function Products() {
         <section className="rounded-2xl bg-[#0B1F3A] px-8 py-10 text-white text-center">
           <h3 className="font-serif text-2xl md:text-3xl font-semibold">Ready to grow with MoneyTrend?</h3>
           <p className="mt-3 text-white/65 max-w-lg mx-auto">
-            Start with any product — FD, mutual funds, or check your civil score. Zero commission, SEBI registered.
+            Start with any product — FD, RD, or check your civil score. Zero commission, SEBI registered.
           </p>
           <div className="mt-6 flex flex-wrap gap-3 justify-center">
             <Link to="/kyc" className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors">

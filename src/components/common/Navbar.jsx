@@ -1,22 +1,117 @@
 import { Link, NavLink } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { LayoutDashboard, LogOut, User, Wallet } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuthModal } from '../../context/AuthModalContext.jsx'
+import { cn } from '../../lib/utils.js'
+import MoneyTrendLogo from './MoneyTrendLogo.jsx'
 
-const NAV_LINKS = [
+const PUBLIC_NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/products', label: 'Products' },
   { to: '/fd-rd', label: 'FD & RD' },
-  { to: '/mutual-funds', label: 'Mutual Funds' },
+  // { to: '/mutual-funds', label: 'Mutual Funds' },
   { to: '/calculators', label: 'Calculators' },
   { to: '/news', label: 'News' },
   { to: '/blog', label: 'Blog' },
-  { to: '/dashboard', label: 'Dashboard' },
   { to: '/goals', label: 'Goals' },
   { to: '/support', label: 'Support' },
+]
+
+const AUTH_NAV_LINKS = [
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/profile', label: 'Profile' },
 ]
 
+function UserMenu({ onNavigate, className }) {
+  const { user, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const close = () => {
+    setOpen(false)
+    onNavigate?.()
+  }
+
+  const initials = user?.name
+    ?.split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'U'
+
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <div className="relative" ref={ref}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/15 transition-colors"
+          aria-label="Profile menu"
+          aria-expanded={open}
+        >
+          <span className="text-sm font-semibold">{initials}</span>
+        </button>
+        {open && (
+          <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white border border-slate-200 shadow-xl py-1.5 z-50">
+            <div className="px-4 py-2 border-b border-slate-100">
+              <p className="text-sm font-medium text-ink truncate">{user?.name}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email || user?.phone}</p>
+            </div>
+            <Link
+              to="/profile"
+              onClick={close}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-slate-50"
+            >
+              <User className="w-4 h-4 text-slate-400" />
+              Profile
+            </Link>
+            <Link
+              to="/dashboard"
+              onClick={close}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-slate-50"
+            >
+              <LayoutDashboard className="w-4 h-4 text-slate-400" />
+              Dashboard
+            </Link>
+            <hr className="my-1 border-slate-100" />
+            <button
+              type="button"
+              onClick={() => { logout(); close() }}
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
+
+      <Link
+        to="/dashboard"
+        onClick={onNavigate}
+        className="flex items-center justify-center w-10 h-10 rounded-xl text-ink hover:text-secondary hover:bg-slate-100 transition-colors"
+        aria-label="Wallet"
+        title="Wallet"
+      >
+        <Wallet className="w-5 h-5" />
+      </Link>
+    </div>
+  )
+}
+
 export default function Navbar() {
+  const { isAuthenticated } = useAuth()
+  const { openLogin, openRegister } = useAuthModal()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -53,15 +148,12 @@ export default function Navbar() {
     <>
       <header className={`sticky top-0 z-40 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-card' : 'bg-white/60 backdrop-blur'}`}>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2" onClick={close}>
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-secondary to-accent grid place-items-center text-white font-display font-bold text-sm">
-              M
-            </div>
-            <span className="font-display font-bold text-xl text-primary">MoneyTrend</span>
+          <Link to="/" className="flex items-center shrink-0 py-1" onClick={close}>
+            <MoneyTrendLogo variant="navbar" className="hover:opacity-90 transition-opacity" />
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.slice(0, 8).map(({ to, label, end }) => (
+            {PUBLIC_NAV_LINKS.slice(0, 8).map(({ to, label, end }) => (
               <NavLink key={to} to={to} end={end} className={desktopLink}>
                 {label}
               </NavLink>
@@ -69,15 +161,22 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            <Link to="/profile" className="text-sm font-medium text-ink hover:text-secondary px-3 py-2">
-              Login
-            </Link>
-            <Link
-              to="/kyc"
-              className="text-sm font-semibold bg-secondary text-white px-4 py-2 rounded-btn hover:bg-secondary/90 shadow-card"
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <>
+                <button type="button" onClick={openLogin} className="text-sm font-medium text-ink hover:text-secondary px-3 py-2">
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={openRegister}
+                  className="text-sm font-semibold bg-secondary text-white px-4 py-2 rounded-btn hover:bg-secondary/90 shadow-card"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
 
           <button
@@ -121,10 +220,7 @@ export default function Navbar() {
             >
               <div className="flex items-center justify-between px-5 h-16 border-b border-slate-100 shrink-0">
                 <Link to="/" className="flex items-center gap-2" onClick={close}>
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-accent grid place-items-center text-white font-display font-bold text-xs">
-                    M
-                  </div>
-                  <span className="font-display font-bold text-lg text-primary">MoneyTrend</span>
+                  <MoneyTrendLogo variant="icon" />
                 </Link>
                 <button
                   type="button"
@@ -139,7 +235,7 @@ export default function Navbar() {
               </div>
 
               <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-                {NAV_LINKS.map(({ to, label, end }, idx) => (
+                {PUBLIC_NAV_LINKS.map(({ to, label, end }, idx) => (
                   <motion.div
                     key={to}
                     initial={{ opacity: 0, x: 16 }}
@@ -151,23 +247,33 @@ export default function Navbar() {
                     </NavLink>
                   </motion.div>
                 ))}
+                {isAuthenticated && AUTH_NAV_LINKS.map(({ to, label }, idx) => (
+                  <motion.div
+                    key={to}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (PUBLIC_NAV_LINKS.length + idx) * 0.04, duration: 0.3 }}
+                  >
+                    <NavLink to={to} onClick={close} className={link}>
+                      {label}
+                    </NavLink>
+                  </motion.div>
+                ))}
               </nav>
 
               <div className="shrink-0 p-4 border-t border-slate-100 space-y-2 bg-slate-50/80">
-                <Link
-                  to="/profile"
-                  onClick={close}
-                  className="block w-full text-center text-sm font-medium text-ink hover:text-secondary px-4 py-3 rounded-xl border border-slate-200 bg-white"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/kyc"
-                  onClick={close}
-                  className="block w-full text-center text-sm font-semibold bg-secondary text-white px-4 py-3 rounded-xl hover:bg-secondary/90 shadow-card"
-                >
-                  Get Started
-                </Link>
+                {isAuthenticated ? (
+                  <UserMenu onNavigate={close} className="justify-center" />
+                ) : (
+                  <>
+                    <button type="button" onClick={() => { openLogin(); close() }} className="block w-full text-center text-sm font-medium text-ink hover:text-secondary px-4 py-3 rounded-xl border border-slate-200 bg-white">
+                      Login
+                    </button>
+                    <button type="button" onClick={() => { openRegister(); close() }} className="block w-full text-center text-sm font-semibold bg-secondary text-white px-4 py-3 rounded-xl hover:bg-secondary/90 shadow-card">
+                      Get Started
+                    </button>
+                  </>
+                )}
               </div>
             </motion.aside>
           </>

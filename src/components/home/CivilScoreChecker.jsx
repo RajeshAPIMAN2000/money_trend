@@ -1,11 +1,15 @@
-import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { scoreFactors, scoreRanges } from '../../data/products-data.js'
+import { useCibilCheck } from '../../context/CibilCheckContext.jsx'
 import BlurText from '../react-bits/BlurText.jsx'
 import CountUp from '../react-bits/CountUp.jsx'
 import FadeInContent from '../react-bits/FadeInContent.jsx'
 import ShinyText from '../react-bits/ShinyText.jsx'
 import SpotlightCard from '../react-bits/SpotlightCard.jsx'
+
+import { getScoreLabel } from '../../lib/cibil.js'
+
+export { getScoreLabel }
 
 export const SCORE = 750
 export const MAX_SCORE = 900
@@ -17,13 +21,6 @@ export const checklistItems = [
   'Repayment Behaviour',
   'Credit Utilization',
 ]
-
-export function getScoreLabel(score) {
-  if (score >= 750) return 'Very Good'
-  if (score >= 650) return 'Good'
-  if (score >= 550) return 'Fair'
-  return 'Needs Work'
-}
 
 export function ScoreGauge({ score, size = 'md', gradientId = 'civilGaugeGrad', animated = false, showNeedle = true }) {
   const pct = (score - MIN_SCORE) / (MAX_SCORE - MIN_SCORE)
@@ -110,7 +107,9 @@ function CheckIcon({ className = 'w-4 h-4' }) {
   )
 }
 
-function CompactCard({ ctaTo = '/products#civil-score' }) {
+function CompactCard() {
+  const { openCibilCheck } = useCibilCheck()
+
   return (
     <SpotlightCard
       spotlightColor="rgba(245, 158, 11, 0.22)"
@@ -199,15 +198,16 @@ function CompactCard({ ctaTo = '/products#civil-score' }) {
 
           {/* Premium CTA Button */}
           <FadeInContent delay={0.55} duration={0.5} y={10}>
-            <Link
-              to={ctaTo}
+            <button
+              type="button"
+              onClick={openCibilCheck}
               className="w-full inline-flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-700 hover:to-amber-800 text-white text-sm font-bold shadow-[0_10px_30px_rgba(180,83,9,0.35)] hover:shadow-[0_15px_40px_rgba(180,83,9,0.5)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
-              Check Your Score Free
+              Check Your CIBIL Free
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+            </button>
           </FadeInContent>
 
           {/* Trust indicators */}
@@ -234,6 +234,8 @@ function CompactCard({ ctaTo = '/products#civil-score' }) {
 }
 
 function FeaturedSection() {
+  const { openCibilCheck } = useCibilCheck()
+
   return (
     <section id="civil-score" className="scroll-mt-24">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-[0_30px_80px_rgba(15,23,42,0.6)] border border-slate-700/50">
@@ -349,24 +351,16 @@ function FeaturedSection() {
               <p className="text-sm text-white/50 mt-2 font-medium">This month alone</p>
             </div>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Link
-                to="/kyc"
+              <button
+                type="button"
+                onClick={openCibilCheck}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:via-amber-700 hover:to-amber-800 text-white font-bold shadow-[0_12px_36px_rgba(217,119,6,0.4)] hover:shadow-[0_16px_48px_rgba(217,119,6,0.6)] hover:-translate-y-1 active:translate-y-0 transition-all duration-200"
               >
-                Check My Score Now
+                Check Your CIBIL
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-3 px-7 py-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/25 hover:border-white/40 text-white font-bold transition-all duration-200 shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_rgba(255,255,255,0.15)]"
-              >
-                View Sample Report
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -375,9 +369,9 @@ function FeaturedSection() {
   )
 }
 
-export default function CivilScoreChecker({ variant = 'compact', ctaTo }) {
+export default function CivilScoreChecker({ variant = 'compact' }) {
   if (variant === 'featured') return <FeaturedSection />
-  return <CompactCard ctaTo={ctaTo} />
+  return <CompactCard />
 }
 
 export { FeaturedSection as CivilScoreFeatured }

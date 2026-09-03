@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom'
 const items = [
   { to: '/dashboard', label: 'Dashboard', icon: '◫' },
-  { to: '/mutual-funds', label: 'Investments', icon: '↗' },
+  { to: '/fd-rd', label: 'FD & RD', icon: '↗' },
+  // { to: '/mutual-funds', label: 'Investments', icon: '↗' },
   { to: '/goals', label: 'Goals', icon: '◎' },
   { to: '/dashboard', label: 'Transactions', icon: '⇆' },
   { to: '/profile', label: 'Profile', icon: '◉' },

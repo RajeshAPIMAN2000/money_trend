@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import MoneyTrendLogo from './MoneyTrendLogo.jsx'
 
 const invest = [
   { label: 'All Products', to: '/products' },
   { label: 'Civil Score Checker', to: '/products#civil-score' },
   { label: 'FD & RD Marketplace', to: '/fd-rd' },
-  { label: 'Mutual Funds', to: '/mutual-funds' },
-  { label: 'SIP Investments', to: '/mutual-funds' },
+  // { label: 'Mutual Funds', to: '/mutual-funds' },
+  // { label: 'SIP Investments', to: '/mutual-funds' },
   { label: 'Goal Planning', to: '/goals' },
 ]
 
@@ -114,11 +115,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-3">
-            <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0056D2] to-[#10B981] grid place-items-center text-white font-display font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
-                M
-              </div>
-              <span className="font-display font-bold text-xl tracking-tight">MoneyTrend</span>
+            <Link to="/" className="inline-flex group mb-2">
+              <MoneyTrendLogo variant="footer" className="group-hover:opacity-90 transition-opacity" />
             </Link>
             <p className="mt-4 text-sm text-white/60 leading-relaxed max-w-xs">
               Your trusted partner in wealth creation and financial freedom.

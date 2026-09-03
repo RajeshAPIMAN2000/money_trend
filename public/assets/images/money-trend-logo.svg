@@ -1,0 +1,61 @@
+<svg width="1240" height="1160" viewBox="0 0 1240 1160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="coinFace" cx="38%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFF3B0"/>
+      <stop offset="35%" stop-color="#F7D046"/>
+      <stop offset="65%" stop-color="#E0A824"/>
+      <stop offset="100%" stop-color="#B9820F"/>
+    </radialGradient>
+    <linearGradient id="coinRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE985"/>
+      <stop offset="50%" stop-color="#C9910E"/>
+      <stop offset="100%" stop-color="#8A5F08"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7D046"/>
+      <stop offset="100%" stop-color="#C9910E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1240" height="1160" fill="#FFFFFF"/>
+
+  <!-- coin -->
+  <g>
+    <circle cx="620" cy="410" r="210" fill="url(#coinRing)"/>
+    <circle cx="620" cy="410" r="196" fill="url(#coinFace)" stroke="#B9820F" stroke-width="3"/>
+    <circle cx="620" cy="410" r="174" fill="none" stroke="#C9910E" stroke-width="2.5" opacity="0.7"/>
+
+    <!-- monogram MT, dark green -->
+    <g fill="none" stroke="#12271C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+      <!-- left arch of M -->
+      <path d="M540 470 V 360 Q540 315 583 315 Q620 315 620 360 V 460"/>
+      <!-- right arch of M -->
+      <path d="M620 460 V 360 Q620 315 657 315 Q700 315 700 360 V 470"/>
+      <!-- vertical stem of T (through middle, doubles as M's center leg) -->
+      <path d="M620 400 V 500 Q620 520 600 520 Q583 520 583 502"/>
+      <!-- T crossbar -->
+      <line x1="583" y1="400" x2="657" y2="400"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="620" y="715" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="108" fill="#12271C">money trend</text>
+
+  <!-- leaf accent -->
+  <g transform="translate(620,790)">
+    <path d="M0 -22 C 16 -14 18 4 0 24 C -18 4 -16 -14 0 -22 Z" fill="url(#leafGrad)"/>
+    <line x1="0" y1="-22" x2="0" y2="24" stroke="#B9820F" stroke-width="2"/>
+  </g>
+
+  <!-- decorative lines flanking leaf -->
+  <line x1="200" y1="792" x2="565" y2="792" stroke="#C9910E" stroke-width="2.5"/>
+  <line x1="675" y1="792" x2="1040" y2="792" stroke="#C9910E" stroke-width="2.5"/>
+
+  <!-- tagline -->
+  <text x="620" y="862" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="600" font-size="34" letter-spacing="4" fill="#12271C">GROW SMART. LIVE BETTER.</text>
+
+  <!-- small tick lines at tagline ends -->
+  <line x1="230" y1="855" x2="285" y2="855" stroke="#C9910E" stroke-width="2.5"/>
+  <line x1="955" y1="855" x2="1010" y2="855" stroke="#C9910E" stroke-width="2.5"/>
+</svg>

@@ -10,12 +10,13 @@ const slides = [
     badge: '🚀 New: 9.4% FD rates from Shriram Finance',
     cta: { primary: { to: '/kyc', label: 'Start Investing Free' }, secondary: { to: '/calculators', label: 'Try Calculators' } },
   },
-  {
-    image: '/assets/images/Invest with Confidence SIP.png',
-    alt: 'Invest with Confidence — SIP and mutual funds',
-    badge: '📈 Top-rated mutual funds',
-    cta: { primary: { to: '/mutual-funds', label: 'Explore Mutual Funds' }, secondary: { to: '/dashboard', label: 'View Dashboard' } },
-  },
+  // Mutual Funds — hidden for now
+  // {
+  //   image: '/assets/images/Invest with Confidence SIP.png',
+  //   alt: 'Invest with Confidence — SIP and mutual funds',
+  //   badge: '📈 Top-rated mutual funds',
+  //   cta: { primary: { to: '/mutual-funds', label: 'Explore Mutual Funds' }, secondary: { to: '/dashboard', label: 'View Dashboard' } },
+  // },
   {
     image: '/assets/images/Secure Returns, Guaranteed.png',
     alt: 'Secure Returns, Guaranteed — FD and RD',
