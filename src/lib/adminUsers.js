@@ -1,4 +1,5 @@
 import { resolveMediaUrl } from './media.js'
+import { extractCreditScore, formatCreditDate, getScoreBandLabel } from './creditCheck.js'
 
 function unwrap(payload) {
   return payload?.data ?? payload ?? {}
@@ -54,6 +55,9 @@ function parseAdminUserRecord(user) {
   const nominee = user.nominee ?? {}
   const kycStatus = user.kyc_status ?? kyc.status ?? 'pending'
   const kycMethod = user.kyc_method ?? kyc.method ?? null
+  const creditScoreValue = extractCreditScore(user)
+  const creditMeta = user.credit_score ?? user.creditScore ?? {}
+  const cibilMeta = creditMeta.cibil_score ?? creditMeta.cibilScore ?? {}
 
   return {
     id: user.id,
@@ -69,6 +73,11 @@ function parseAdminUserRecord(user) {
     joined: formatDate(user.created_at),
     updatedAt: user.updated_at,
     createdAt: user.created_at,
+    creditScore: creditScoreValue,
+    creditScoreLabel: creditScoreValue != null ? String(creditScoreValue) : '—',
+    creditBand: getScoreBandLabel(creditScoreValue, cibilMeta.band ?? cibilMeta.score_band),
+    creditProvider: creditMeta.provider ?? cibilMeta.provider ?? (creditScoreValue != null ? 'EXPERIAN' : '—'),
+    creditCheckedAt: formatCreditDate(cibilMeta.checked_at ?? cibilMeta.checkedAt ?? creditMeta.checked_at),
     kyc: {
       submitted: Boolean(kyc.submitted),
       message: kyc.message ?? '',
@@ -116,6 +125,7 @@ export function mapUserToTableRow(user) {
     kycStatus: normalizeKycStatus(user.kycStatus),
     kycTypeLabel: user.kycMethodLabel,
     kycMethod: user.kycMethod,
+    creditScore: user.creditScoreLabel,
     joined: user.joined,
     submittedLabel: user.kyc?.createdAt ? formatDate(user.kyc.createdAt) : '—',
     status: 'Active',

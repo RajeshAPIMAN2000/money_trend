@@ -15,13 +15,13 @@ const explore = [
   { label: 'Market Updates', to: '/news' },
   { label: 'News', to: '/news' },
   { label: 'Blog', to: '/blog' },
-  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Portfolio', to: '/dashboard' },
 ]
 
 const tools = [
   { label: 'Calculators', to: '/calculators' },
   { label: 'e-KYC Portal', to: '/kyc' },
-  { label: 'Smart Dashboard', to: '/dashboard' },
+  { label: 'Portfolio', to: '/dashboard' },
   { label: 'Profile', to: '/profile' },
 ]
 

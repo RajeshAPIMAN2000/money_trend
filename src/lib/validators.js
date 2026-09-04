@@ -44,5 +44,20 @@ export function isMinor(dob) {
   return age < 18
 }
 
-export const RELATIONSHIPS = ['Spouse', 'Parent', 'Child', 'Sibling', 'Other']
+export const RELATIONSHIPS = [
+  'Spouse',
+  'Father',
+  'Mother',
+  'Son',
+  'Daughter',
+  'Brother',
+  'Sister',
+  'Grandson',
+  'Granddaughter',
+  'Father-in-law',
+  'Mother-in-law',
+  'Son-in-law',
+  'Daughter-in-law',
+  'Others',
+]
 export const ID_PROOF_TYPES = ['Aadhaar', 'PAN', 'Passport', 'Driving License']

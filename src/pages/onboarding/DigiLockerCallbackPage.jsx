@@ -73,8 +73,24 @@ function DigiLockerFlow() {
           <p className="text-sm text-slate-600 mb-6">
             Your DigiLocker KYC has been submitted for admin verification.
           </p>
-          <Button className="w-full" onClick={() => navigate('/onboarding/nominee')}>
-            Continue to Nominee Details →
+          <Button
+            className="w-full"
+            onClick={async () => {
+              try {
+                const profileRes = await api.getProfile()
+                const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
+                if (nominee?.added || nominee?.nominee_name) {
+                  updateUser({ nominee, nominee_added: true, registration_complete: true })
+                  navigate('/dashboard')
+                  return
+                }
+              } catch {
+                // fall through
+              }
+              navigate('/onboarding/nominee')
+            }}
+          >
+            Continue →
           </Button>
         </div>
       </AuthLayout>

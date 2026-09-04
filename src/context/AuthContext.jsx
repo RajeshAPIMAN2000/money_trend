@@ -41,8 +41,43 @@ export function AuthProvider({ children }) {
       return null
     }
     try {
-      const res = await api.getMe()
-      const u = res?.user ?? res?.data?.user ?? res
+      // Prefer /profile — includes nominee.added so we can skip nominee onboarding
+      let profile = null
+      try {
+        const profileRes = await api.getProfile()
+        profile = profileRes?.data ?? profileRes
+      } catch {
+        profile = null
+      }
+
+      let u = null
+      try {
+        const res = await api.getMe()
+        u = res?.user ?? res?.data?.user ?? res
+      } catch {
+        u = null
+      }
+
+      if (profile && typeof profile === 'object') {
+        const nomineeAdded = Boolean(profile.nominee?.added || profile.nominee?.nominee_name)
+        const merged = {
+          ...(u && typeof u === 'object' ? u : {}),
+          id: profile.id ?? u?.id,
+          full_name: profile.full_name ?? u?.full_name,
+          email: profile.email ?? u?.email,
+          phone: profile.phone ?? u?.phone,
+          profile_image: profile.profile_image ?? u?.profile_image,
+          kyc_status: profile.kyc_status ?? u?.kyc_status,
+          kyc_method: profile.kyc_method ?? u?.kyc_method,
+          nominee: profile.nominee ?? null,
+          nominee_added: nomineeAdded,
+          registration_complete: nomineeAdded || Boolean(u?.registration_complete),
+        }
+        localStorage.setItem(USER_KEY, JSON.stringify(merged))
+        setUser(merged)
+        return merged
+      }
+
       if (u && typeof u === 'object') {
         localStorage.setItem(USER_KEY, JSON.stringify(u))
         setUser(u)
@@ -61,19 +96,20 @@ export function AuthProvider({ children }) {
     refreshUser()
   }, [refreshUser])
 
-  const sendRegisterOtp = useCallback((data) => {
-    return authApi.sendRegisterOtp({
-      full_name: data.full_name,
-      email: data.email,
-      phone: data.phone,
-      password: data.password,
-      confirm_password: data.confirm_password,
-    })
-  }, [])
-
-  const resendRegisterOtp = useCallback((data) => {
-    return authApi.resendRegisterOtp({ phone: data.phone })
-  }, [])
+  // OTP register helpers — commented out (password-only registration)
+  // const sendRegisterOtp = useCallback((data) => {
+  //   return authApi.sendRegisterOtp({
+  //     full_name: data.full_name,
+  //     email: data.email,
+  //     phone: data.phone,
+  //     password: data.password,
+  //     confirm_password: data.confirm_password,
+  //     date_of_birth: data.date_of_birth,
+  //   })
+  // }, [])
+  // const resendRegisterOtp = useCallback((data) => {
+  //   return authApi.resendRegisterOtp({ phone: data.phone })
+  // }, [])
 
   const completeRegister = useCallback(async (data) => {
     const res = await authApi.register({
@@ -83,30 +119,30 @@ export function AuthProvider({ children }) {
       password: data.password,
       confirm_password: data.confirm_password,
       date_of_birth: data.date_of_birth,
-      otp: data.otp,
+      // otp: data.otp, // OTP registration disabled
     })
     return applyAuthResult(res)
   }, [applyAuthResult])
 
-  const sendLoginOtp = useCallback((data) => {
-    return authApi.sendLoginOtp({
-      email: data.email,
-      password: data.password,
-    })
-  }, [])
-
-  const resendLoginOtp = useCallback((data) => {
-    return authApi.resendLoginOtp({
-      email: data.email,
-      password: data.password,
-    })
-  }, [])
+  // OTP login helpers — commented out (password-only login)
+  // const sendLoginOtp = useCallback((data) => {
+  //   return authApi.sendLoginOtp({
+  //     email: data.email,
+  //     password: data.password,
+  //   })
+  // }, [])
+  // const resendLoginOtp = useCallback((data) => {
+  //   return authApi.resendLoginOtp({
+  //     email: data.email,
+  //     password: data.password,
+  //   })
+  // }, [])
 
   const completeLogin = useCallback(async (data) => {
     const res = await authApi.login({
       email: data.email,
       password: data.password,
-      otp: data.otp,
+      // otp: data.otp, // OTP login disabled
     })
     return applyAuthResult(res)
   }, [applyAuthResult])
@@ -119,10 +155,17 @@ export function AuthProvider({ children }) {
     })
   }, [])
 
-  const isKycApproved = user?.kyc_status === 'approved'
-  const isKycPending = user?.kyc_status === 'pending'
-  const needsKyc = !user || user.kyc_status === 'not_started' || user.kyc_status === 'rejected'
-  const needsNominee = user && user.kyc_status !== 'not_started' && !user.registration_complete
+  const isKycApproved = ['approved', 'verified'].includes(String(user?.kyc_status || '').toLowerCase())
+  const isKycPending = ['pending', 'submitted'].includes(String(user?.kyc_status || '').toLowerCase())
+  const needsKyc = !user || ['not_started', 'rejected', ''].includes(String(user?.kyc_status || 'not_started').toLowerCase())
+  const hasNominee = Boolean(
+    user?.nominee_added
+    || user?.registration_complete
+    || user?.nominee?.added
+    || user?.nominee?.nominee_name,
+  )
+  // Only prompt for nominee when KYC is done and nominee is not yet added
+  const needsNominee = Boolean(user) && !needsKyc && !hasNominee && isKycPending
 
   return (
     <AuthContext.Provider value={{
@@ -133,11 +176,12 @@ export function AuthProvider({ children }) {
       isKycPending,
       needsKyc,
       needsNominee,
-      sendRegisterOtp,
-      resendRegisterOtp,
+      hasNominee,
+      // sendRegisterOtp, // OTP disabled
+      // resendRegisterOtp, // OTP disabled
       completeRegister,
-      sendLoginOtp,
-      resendLoginOtp,
+      // sendLoginOtp, // OTP disabled
+      // resendLoginOtp, // OTP disabled
       completeLogin,
       logout,
       refreshUser,

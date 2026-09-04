@@ -71,6 +71,7 @@ export const adminNav = [
     label: 'Communication',
     icon: Bell,
     children: [
+      { label: 'Support Tickets', path: '/admin/support', icon: MessageSquare },
       { label: 'Notifications', path: '/admin/notifications', icon: Bell },
       { label: 'Email Templates', path: '/admin/email-templates', icon: Mail },
       { label: 'SMS / WhatsApp', path: '/admin/sms', icon: MessageSquare },
@@ -82,6 +83,7 @@ export const adminNav = [
     children: [
       { label: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
       { label: 'Reports', path: '/admin/reports', icon: FileBarChart },
+      { label: 'Credit Reports', path: '/admin/credit-checks', icon: CreditCard },
       { label: 'Export Data', path: '/admin/export', icon: Download },
     ],
   },

@@ -15,12 +15,12 @@ const PUBLIC_NAV_LINKS = [
   { to: '/calculators', label: 'Calculators' },
   { to: '/news', label: 'News' },
   { to: '/blog', label: 'Blog' },
-  { to: '/goals', label: 'Goals' },
+  // { to: '/goals', label: 'Goals' },
   { to: '/support', label: 'Support' },
 ]
 
 const AUTH_NAV_LINKS = [
-  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/dashboard', label: 'Portfolio' },
   { to: '/profile', label: 'Profile' },
 ]
 
@@ -81,7 +81,7 @@ function UserMenu({ onNavigate, className }) {
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-slate-50"
             >
               <LayoutDashboard className="w-4 h-4 text-slate-400" />
-              Dashboard
+              Portfolio
             </Link>
             <hr className="my-1 border-slate-100" />
             <button

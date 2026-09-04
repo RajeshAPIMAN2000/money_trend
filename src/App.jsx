@@ -51,7 +51,10 @@ import TransactionsPage from './admin/pages/transactions/TransactionsPage.jsx'
 import NewsPage from './admin/pages/content/NewsPage.jsx'
 import BlogsPage from './admin/pages/content/BlogsPage.jsx'
 import BannersPage from './admin/pages/content/BannersPage.jsx'
+import AdminCreditChecksPage from './admin/pages/credit/AdminCreditChecksPage.jsx'
 import SettingsPage from './admin/pages/settings/SettingsPage.jsx'
+import CreditScorePage from './pages/CreditScorePage.jsx'
+import CreditScoreHistoryPage from './pages/CreditScoreHistoryPage.jsx'
 import { ProfilePage, ChangePasswordPage } from './admin/pages/profile/ProfilePages.jsx'
 import { moduleRegistry } from './admin/data/moduleRegistry.js'
 
@@ -73,6 +76,8 @@ function PublicApp() {
           <Route path="/fd-rd/rd/:id" element={<Navigate to="/fd-rd" replace />} />
           {/* <Route path="/mutual-funds" element={<MutualFunds />} /> */}
           <Route path="/dashboard" element={<UserRequireAuth><Dashboard /></UserRequireAuth>} />
+          <Route path="/credit-score" element={<CreditScorePage />} />
+          <Route path="/credit-score/history" element={<UserRequireAuth><CreditScoreHistoryPage /></UserRequireAuth>} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsArticle />} />
           <Route path="/goals" element={<Goals />} />
@@ -142,6 +147,7 @@ export default function App() {
             <Route path="news" element={<NewsPage />} />
             <Route path="blogs" element={<BlogsPage />} />
             <Route path="banners" element={<BannersPage />} />
+            <Route path="credit-checks" element={<AdminCreditChecksPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="change-password" element={<ChangePasswordPage />} />

@@ -22,6 +22,8 @@ import TransactionsPage from './pages/transactions/TransactionsPage.jsx'
 import NewsPage from './pages/content/NewsPage.jsx'
 import BlogsPage from './pages/content/BlogsPage.jsx'
 import BannersPage from './pages/content/BannersPage.jsx'
+import AdminCreditChecksPage from './pages/credit/AdminCreditChecksPage.jsx'
+import AdminSupportPage from './pages/support/AdminSupportPage.jsx'
 import SettingsPage from './pages/settings/SettingsPage.jsx'
 import { ProfilePage, ChangePasswordPage } from './pages/profile/ProfilePages.jsx'
 import { moduleRegistry } from './data/moduleRegistry.js'
@@ -57,6 +59,8 @@ export function AdminRouteTree() {
         <Route path="news" element={<NewsPage />} />
         <Route path="blogs" element={<BlogsPage />} />
         <Route path="banners" element={<BannersPage />} />
+        <Route path="credit-checks" element={<AdminCreditChecksPage />} />
+        <Route path="support" element={<AdminSupportPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />

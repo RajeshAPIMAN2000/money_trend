@@ -54,18 +54,54 @@ function ManualKYCForm() {
     setError('')
     try {
       const formData = new FormData()
-      formData.append('aadhaarNumber', cleanAadhaar)
-      formData.append('panNumber', data.panNumber.toUpperCase())
-      formData.append('name', data.name)
-      formData.append('phone', data.phone)
-      formData.append('aadhaarDoc', aadhaarFile)
-      formData.append('panDoc', panFile)
+      const pan = String(data.panNumber || '').trim().toUpperCase()
+      const fullName = String(data.name || '').trim()
+      const phone = String(data.phone || '').replace(/\D/g, '')
+
+      // Matches money_trend_backend/controllers/kycController.js (multipart)
+      formData.append('pan_number', pan)
+      formData.append('pan_full_name', fullName)
+      formData.append('full_name', fullName)
+      formData.append('aadhaar_number', cleanAadhaar)
+      formData.append('phone', phone)
+      formData.append('pan_image', panFile)
+      formData.append('aadhaar_image', aadhaarFile)
 
       await api.submitManualKyc(formData)
-      updateUser({ kyc_status: 'pending', kyc_type: 'manual' })
+      updateUser({ kyc_status: 'submitted', kyc_method: 'manual', kyc_type: 'manual' })
+
+      // Skip nominee step if already completed
+      try {
+        const profileRes = await api.getProfile()
+        const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
+        if (nominee?.added || nominee?.nominee_name) {
+          updateUser({
+            nominee,
+            nominee_added: true,
+            registration_complete: true,
+          })
+          navigate('/dashboard')
+          return
+        }
+      } catch {
+        // continue to nominee form
+      }
+
       navigate('/onboarding/nominee')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'KYC submission failed')
+      const details = err?.data
+      let message = err instanceof ApiError ? err.message : 'KYC submission failed'
+      if (details?.hint) message = `${message}. ${details.hint}`
+      if (details?.errors) {
+        if (Array.isArray(details.errors)) {
+          message = details.errors.map((e) => e.message || e.msg || String(e)).filter(Boolean).join('. ') || message
+        } else if (typeof details.errors === 'object') {
+          message = Object.entries(details.errors)
+            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+            .join('. ') || message
+        }
+      }
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -97,9 +133,9 @@ function ManualKYCForm() {
           })}
         />
         <FormInput
-          label="Name (as per ID)"
+          label="Full Name (as per PAN)"
           error={errors.name?.message}
-          {...register('name', { required: 'Name is required' })}
+          {...register('name', { required: 'Full name as per PAN is required' })}
         />
         <FormInput
           label="Phone Number"

@@ -48,15 +48,18 @@ function AuthModalShell({ title, subtitle, onClose, children, footer }) {
 }
 
 function LoginView({ onSwitchRegister, onSwitchForgot, onSuccess }) {
-  const { sendLoginOtp, resendLoginOtp, completeLogin } = useAuth()
-  const { showToast } = useToast()
-  const [step, setStep] = useState('credentials')
+  const { completeLogin } = useAuth()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [otp, setOtp] = useState('')
-  const [phoneMasked, setPhoneMasked] = useState('')
-  const [credentials, setCredentials] = useState({ email: '', password: '' })
-  const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
+
+  // OTP login flow — commented out
+  // const { sendLoginOtp, resendLoginOtp, completeLogin } = useAuth()
+  // const { showToast } = useToast()
+  // const [step, setStep] = useState('credentials')
+  // const [otp, setOtp] = useState('')
+  // const [phoneMasked, setPhoneMasked] = useState('')
+  // const [credentials, setCredentials] = useState({ email: '', password: '' })
+  // const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
 
   const form = useForm({ defaultValues: { email: '', password: '' } })
 
@@ -64,81 +67,30 @@ function LoginView({ onSwitchRegister, onSwitchForgot, onSuccess }) {
     setError('')
     setLoading(true)
     try {
-      const res = await sendLoginOtp(data)
-      const meta = extractOtpMeta(res)
-      setCredentials({ email: data.email, password: data.password })
-      setPhoneMasked(meta.phoneMasked || 'your registered mobile number')
-      setOtp('')
-      setStep('otp')
-      start(meta.expiresIn)
-      if (meta.message) showToast(meta.message)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to send OTP')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const onResendOtp = async () => {
-    if (running || resendCooldown > 0) return
-    setError('')
-    setLoading(true)
-    try {
-      const res = await resendLoginOtp(credentials)
-      const meta = extractOtpMeta(res)
-      setOtp('')
-      start(meta.expiresIn)
-      showToast(meta.message || 'OTP sent successfully')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to resend OTP')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const onOtpSubmit = async () => {
-    if (otp.length !== 6) {
-      setError('Enter the 6-digit OTP')
-      return
-    }
-    if (expired) {
-      setError('OTP has expired. Please request a new one.')
-      return
-    }
-    setError('')
-    setLoading(true)
-    try {
-      const result = await completeLogin({ ...credentials, otp })
+      // Direct password login (OTP step disabled)
+      const result = await completeLogin({ email: data.email, password: data.password })
       onSuccess(result)
+
+      // OTP send step — commented out
+      // const res = await sendLoginOtp(data)
+      // const meta = extractOtpMeta(res)
+      // setCredentials({ email: data.email, password: data.password })
+      // setPhoneMasked(meta.phoneMasked || 'your registered mobile number')
+      // setOtp('')
+      // setStep('otp')
+      // start(meta.expiresIn)
+      // if (meta.message) showToast(meta.message)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed')
-      setOtp('')
     } finally {
       setLoading(false)
     }
   }
 
-  if (step === 'otp') {
-    return (
-      <OtpVerification
-        phoneMasked={phoneMasked}
-        otp={otp}
-        onOtpChange={setOtp}
-        seconds={seconds}
-        resendCooldown={resendCooldown}
-        expired={expired}
-        running={running}
-        error={error}
-        loading={loading}
-        onSubmit={onOtpSubmit}
-        onResend={onResendOtp}
-        submitLabel="Sign In"
-        loadingLabel="Logging in..."
-        onBack={() => { setStep('credentials'); setOtp(''); setError('') }}
-        backLabel="← Back to login"
-      />
-    )
-  }
+  // OTP resend / verify — commented out
+  // const onResendOtp = async () => { ... }
+  // const onOtpSubmit = async () => { ... }
+  // if (step === 'otp') { return <OtpVerification ... /> }
 
   return (
     <>
@@ -167,7 +119,7 @@ function LoginView({ onSwitchRegister, onSwitchForgot, onSuccess }) {
           <button type="button" onClick={onSwitchForgot} className="text-xs text-secondary hover:underline">Forgot Password?</button>
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Sending OTP...' : 'Continue'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </Button>
       </form>
     </>
@@ -175,15 +127,18 @@ function LoginView({ onSwitchRegister, onSwitchForgot, onSuccess }) {
 }
 
 function RegisterView({ onSwitchLogin, onSuccess }) {
-  const { sendRegisterOtp, resendRegisterOtp, completeRegister } = useAuth()
-  const { showToast } = useToast()
-  const [step, setStep] = useState('form')
+  const { completeRegister } = useAuth()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [otp, setOtp] = useState('')
-  const [phoneMasked, setPhoneMasked] = useState('')
-  const [formData, setFormData] = useState(null)
-  const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
+
+  // OTP register flow — commented out
+  // const { sendRegisterOtp, resendRegisterOtp, completeRegister } = useAuth()
+  // const { showToast } = useToast()
+  // const [step, setStep] = useState('form')
+  // const [otp, setOtp] = useState('')
+  // const [phoneMasked, setPhoneMasked] = useState('')
+  // const [formData, setFormData] = useState(null)
+  // const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: { name: '', email: '', phone: '', dateOfBirth: '', password: '', confirmPassword: '' },
@@ -216,81 +171,30 @@ function RegisterView({ onSwitchLogin, onSuccess }) {
 
     setLoading(true)
     try {
-      const res = await sendRegisterOtp(payload)
-      const meta = extractOtpMeta(res)
-      setFormData(payload)
-      setPhoneMasked(meta.phoneMasked || `******${data.phone.slice(-4)}`)
-      setOtp('')
-      setStep('otp')
-      start(meta.expiresIn)
-      if (meta.message) showToast(meta.message)
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to send OTP')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const onResendOtp = async () => {
-    if (running || resendCooldown > 0 || !formData) return
-    setError('')
-    setLoading(true)
-    try {
-      const res = await resendRegisterOtp({ phone: formData.phone })
-      const meta = extractOtpMeta(res)
-      setOtp('')
-      start(meta.expiresIn)
-      showToast(meta.message || 'OTP sent successfully')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to resend OTP')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const onOtpSubmit = async () => {
-    if (otp.length !== 6) {
-      setError('Enter the 6-digit OTP')
-      return
-    }
-    if (expired) {
-      setError('OTP has expired. Please request a new one.')
-      return
-    }
-    setError('')
-    setLoading(true)
-    try {
-      const result = await completeRegister({ ...formData, otp })
+      // Direct registration (OTP step disabled)
+      const result = await completeRegister(payload)
       onSuccess(result)
+
+      // OTP send step — commented out
+      // const res = await sendRegisterOtp(payload)
+      // const meta = extractOtpMeta(res)
+      // setFormData(payload)
+      // setPhoneMasked(meta.phoneMasked || `******${data.phone.slice(-4)}`)
+      // setOtp('')
+      // setStep('otp')
+      // start(meta.expiresIn)
+      // if (meta.message) showToast(meta.message)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Registration failed')
-      setOtp('')
     } finally {
       setLoading(false)
     }
   }
 
-  if (step === 'otp') {
-    return (
-      <OtpVerification
-        phoneMasked={phoneMasked}
-        otp={otp}
-        onOtpChange={setOtp}
-        seconds={seconds}
-        resendCooldown={resendCooldown}
-        expired={expired}
-        running={running}
-        error={error}
-        loading={loading}
-        onSubmit={onOtpSubmit}
-        onResend={onResendOtp}
-        submitLabel="Create Account"
-        loadingLabel="Creating account..."
-        onBack={() => { setStep('form'); setOtp(''); setError('') }}
-        backLabel="← Back"
-      />
-    )
-  }
+  // OTP resend / verify — commented out
+  // const onResendOtp = async () => { ... }
+  // const onOtpSubmit = async () => { ... }
+  // if (step === 'otp') { return <OtpVerification ... /> }
 
   return (
     <>
@@ -357,7 +261,7 @@ function RegisterView({ onSwitchLogin, onSuccess }) {
           {...register('confirmPassword', { required: 'Please confirm password' })}
         />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Sending OTP...' : 'Next Step'}
+          {loading ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
     </>
@@ -558,9 +462,25 @@ export default function AuthModal() {
   const { showToast } = useToast()
   const { view, close, openLogin, openRegister, openForgot, showKycModal, setShowKycModal } = useAuthModal()
 
-  const handleAuthSuccess = (result, fallbackMessage) => {
+  const handleAuthSuccess = async (result, fallbackMessage) => {
     close()
     const destination = getPostAuthPath(result?.nextStep)
+
+    // If backend says "nominee" but user already has one, skip that step
+    if (result?.nextStep === 'nominee') {
+      try {
+        const profileRes = await api.getProfile()
+        const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
+        if (nominee?.added || nominee?.nominee_name) {
+          navigate('/dashboard')
+          showToast(result?.message || fallbackMessage)
+          return
+        }
+      } catch {
+        // fall through to nominee route
+      }
+    }
+
     if (destination.type === 'kyc') {
       setShowKycModal(true)
     } else {
@@ -580,6 +500,16 @@ export default function AuthModal() {
       const session = await api.initDigiLocker()
       if (session.isStub) {
         await api.completeDigiLockerStub()
+        try {
+          const profileRes = await api.getProfile()
+          const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
+          if (nominee?.added || nominee?.nominee_name) {
+            navigate('/dashboard')
+            return
+          }
+        } catch {
+          // fall through
+        }
         navigate('/onboarding/nominee')
       } else {
         window.location.href = session.authUrl

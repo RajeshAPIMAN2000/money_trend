@@ -65,6 +65,10 @@ export default function UserDetailsPage() {
                 ['Joined', user.joined],
                 ['KYC Method', user.kycMethodLabel],
                 ['KYC Status', user.kycStatusLabel],
+                ['CIBIL Score', user.creditScoreLabel],
+                ['Credit Band', user.creditBand],
+                ['Credit Provider', user.creditProvider],
+                ['Credit Checked', user.creditCheckedAt],
                 ['Role', user.role],
                 ['Last Updated', user.updatedAt ? new Date(user.updatedAt).toLocaleString() : '—'],
               ].map(([label, val]) => (

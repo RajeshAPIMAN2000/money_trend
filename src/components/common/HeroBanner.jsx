@@ -76,7 +76,7 @@ export default function HeroBanner() {
               src={encodeURI(s.image)}
               alt={s.alt}
               className={`absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center ${i === active ? 'animate-ken-burns' : ''}`}
-              fetchPriority={i === 0 ? 'high' : 'low'}
+              fetchpriority={i === 0 ? 'high' : 'low'}
             />
             {/* Light bottom scrim for CTAs — keeps headline art in the image visible */}
             <div className="absolute inset-0 bg-gradient-to-t from-primary/50 via-transparent to-transparent" />

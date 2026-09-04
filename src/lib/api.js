@@ -64,9 +64,11 @@ export const api = {
   completeDigiLockerStub: () => request('/kyc/digilocker/complete-stub', { method: 'POST' }),
   getKycStatus: () => request('/kyc/status'),
 
-  // Nominee
-  submitNominees: (nominees) => request('/nominee', { method: 'POST', body: { nominees } }),
-  getNominees: () => request('/nominee'),
+  // Nominee — POST /api/kyc/nominee (multipart)
+  submitNominee: (formData) => request('/kyc/nominee', { method: 'POST', body: formData }),
+  // legacy alias
+  submitNominees: (formData) => request('/kyc/nominee', { method: 'POST', body: formData }),
+  getNominees: () => request('/kyc/nominee'),
 
   // Admin
   adminLogin: (data) => request('/admin/login', { method: 'POST', body: data }),
@@ -178,10 +180,21 @@ export const api = {
   getMarketHistory: (period) => request(`/market/history?period=${encodeURIComponent(period)}`),
   getMarketRepoHistory: () => request('/market/repo-history'),
 
-  // CIBIL / Civil Score
-  sendCibilOtp: (data) => request('/cibil/otp/send', { method: 'POST', body: data }),
-  verifyCibilOtp: (data) => request('/cibil/otp/verify', { method: 'POST', body: data }),
-  getCibilScores: (data) => request('/cibil/scores', { method: 'POST', body: data }),
+  // Credit Check (backend → Experian; frontend never talks to Experian)
+  submitCreditCheck: (body) =>
+    request('/credit-check', { method: 'POST', body }),
+  getCreditCheckLatest: () =>
+    request('/credit-check/latest'),
+  getCreditChecks: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/credit-check${q ? `?${q}` : ''}`)
+  },
+  getCreditCheckById: (id) =>
+    request(`/credit-check/${encodeURIComponent(id)}`),
+  getAdminCreditChecks: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/admin/credit-checks${q ? `?${q}` : ''}`, { admin: true })
+  },
 
   // Home
   getHome: () => request('/home'),
@@ -196,6 +209,56 @@ export const api = {
   },
   getHomeFull: () => request('/home/full'),
   getHomeDashboard: () => request('/home/dashboard'),
+
+  // User profile portfolio — GET /api/profile/portfolio (JWT required)
+  getProfilePortfolio: () => request('/profile/portfolio'),
+  getProfile: () => request('/profile'),
+  updateProfile: (userId, body) =>
+    request(`/profile/${encodeURIComponent(userId)}`, { method: 'PUT', body }),
+  getBankAccount: () => request('/profile/bank-account'),
+  /** POST /api/profile/bank-account — create / add */
+  createBankAccount: (body) =>
+    request('/profile/bank-account', { method: 'POST', body }),
+  /** PUT /api/profile/bank-account — update */
+  updateBankAccount: (body) =>
+    request('/profile/bank-account', { method: 'PUT', body }),
+  /** Alias — defaults to PUT (same handler as POST on backend) */
+  saveBankAccount: (body, { method = 'PUT' } = {}) =>
+    request('/profile/bank-account', { method, body }),
+
+  // Support — user
+  getSupportHelp: () => request('/support/help'),
+  submitSupportTicket: (formData) =>
+    request('/support', { method: 'POST', body: formData }),
+  getMySupportTickets: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.set('status', params.status)
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/support${qs ? `?${qs}` : ''}`)
+  },
+  getMySupportTicket: (id) =>
+    request(`/support/${encodeURIComponent(id)}`),
+
+  // Support — admin
+  getAdminSupportTickets: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.set('status', params.status)
+    if (params.search) q.set('search', params.search)
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/admin/support${qs ? `?${qs}` : ''}`, { admin: true })
+  },
+  getAdminSupportTicket: (id) =>
+    request(`/admin/support/${encodeURIComponent(id)}`, { admin: true }),
+  updateAdminSupportTicketStatus: (id, body) =>
+    request(`/admin/support/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body,
+      admin: true,
+    }),
 
   // Articles — Blogs & News
   getBlogs: ({ limit = 10, offset = 0 } = {}) =>

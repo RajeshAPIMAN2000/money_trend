@@ -89,6 +89,7 @@ export default function UsersPage() {
             { key: 'email', label: 'Email' },
             { key: 'phone', label: 'Phone' },
             { key: 'kyc', label: 'KYC Status' },
+            { key: 'creditScore', label: 'CIBIL Score' },
             { key: 'joined', label: 'Joined' },
             { key: 'status', label: 'Status' },
           ]}

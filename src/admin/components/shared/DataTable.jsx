@@ -15,8 +15,11 @@ import { useAdminQuery, paginateRows } from '../../hooks/useAdminQuery.js'
 import { cn } from '../../../lib/utils.js'
 
 function statusTone(status) {
-  const s = String(status || '').toLowerCase()
-  if (['active', 'success', 'verified', 'approved', 'published', 'operational', 'delivered', 'executed', 'ready', 'live', 'completed'].some(k => s.includes(k))) return 'success'
+  const s = String(status || '').toLowerCase().replace(/[\s-]+/g, '_')
+  if (s === 'fixed' || s === 'in_process' || ['active', 'success', 'verified', 'approved', 'published', 'operational', 'delivered', 'executed', 'ready', 'live', 'completed'].some(k => s.includes(k))) {
+    if (s === 'in_process' || s.includes('process')) return 'info'
+    return 'success'
+  }
   if (['pending', 'processing', 'draft', 'review', 'scheduled'].some(k => s.includes(k))) return 'warning'
   if (['rejected', 'failed', 'suspended', 'error', 'cancelled', 'inactive'].some(k => s.includes(k))) return 'danger'
   return 'default'

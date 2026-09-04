@@ -1,4 +1,6 @@
-export default function FormInput({ label, error, className = '', icon, ...props }) {
+import { forwardRef } from 'react'
+
+const FormInput = forwardRef(function FormInput({ label, error, className = '', icon, ...props }, ref) {
   return (
     <div className={className}>
       {label && <label className="text-xs font-semibold text-slate-500">{label}</label>}
@@ -12,9 +14,12 @@ export default function FormInput({ label, error, className = '', icon, ...props
             ${error ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-secondary'}
             ${props.disabled ? 'bg-slate-50' : ''}`}
           {...props}
+          ref={ref}
         />
       </div>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   )
-}
+})
+
+export default FormInput
