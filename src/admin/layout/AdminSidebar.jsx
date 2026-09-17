@@ -1,8 +1,13 @@
-import { useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown, ChevronRight, LogOut } from 'lucide-react'
 import { cn } from '../../lib/utils.js'
 import { adminNav } from '../data/admin-nav.js'
+import {
+  filterAdminNavByRoles,
+  adminDisplayName,
+  adminRoleSummary,
+} from '../data/admin-roles.js'
 import { useAdmin } from '../context/AdminContext.jsx'
 import AdminAvatar from '../components/ui/AdminAvatar.jsx'
 import MoneyTrendLogo from '../../components/common/MoneyTrendLogo.jsx'
@@ -88,7 +93,17 @@ function NavItem({ item, collapsed }) {
 }
 
 export default function AdminSidebar() {
-  const { sidebarCollapsed, mobileOpen, setMobileOpen } = useAdmin()
+  const { sidebarCollapsed, mobileOpen, setMobileOpen, adminUser, logout } = useAdmin()
+  const navigate = useNavigate()
+  const navItems = useMemo(() => filterAdminNavByRoles(adminNav, adminUser), [adminUser])
+
+  const displayName = adminDisplayName(adminUser)
+  const roleText = adminRoleSummary(adminUser)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/admin/login')
+  }
 
   const sidebar = (
     <aside
@@ -105,26 +120,31 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 admin-scrollbar">
-        {adminNav.map(item => (
+        {navItems.map(item => (
           <NavItem key={item.label} item={item} collapsed={sidebarCollapsed} />
         ))}
       </nav>
 
-      {/* User footer */}
+      {/* User footer — logout */}
       <div className={cn('p-3 border-t border-white/5', sidebarCollapsed && 'flex justify-center')}>
-        <div className={cn(
-          'flex items-center gap-3 p-2.5 rounded-xl bg-white/5 hover:bg-white/8 transition-colors cursor-pointer',
-          sidebarCollapsed && 'p-2',
-        )}>
-          <AdminAvatar name="Admin User" size="sm" />
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Logout"
+          className={cn(
+            'w-full flex items-center gap-3 p-2.5 rounded-xl bg-white/5 hover:bg-white/8 transition-colors text-left',
+            sidebarCollapsed && 'p-2 justify-center',
+          )}
+        >
+          <AdminAvatar name={displayName} size="sm" />
           {!sidebarCollapsed && (
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">Admin User</div>
-              <div className="text-[11px] text-slate-400">Super Admin</div>
+              <div className="text-sm font-medium text-white truncate">{displayName}</div>
+              <div className="text-[11px] text-slate-400 truncate">{roleText}</div>
             </div>
           )}
           {!sidebarCollapsed && <LogOut className="w-4 h-4 text-slate-400 hover:text-white shrink-0" />}
-        </div>
+        </button>
       </div>
     </aside>
   )

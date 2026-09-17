@@ -1,21 +1,31 @@
 import { request } from './api.js'
 
-export const authApi = {
-  // OTP register — commented out (password-only registration)
-  // sendRegisterOtp: (payload) =>
-  //   request('/auth/register/send-otp', { method: 'POST', body: payload }),
-  // resendRegisterOtp: (payload) =>
-  //   request('/auth/register/resend-otp', { method: 'POST', body: payload }),
+export const EMAIL_OTP_PURPOSE = {
+  VERIFICATION: 'EMAIL_VERIFICATION',
+  LOGIN: 'LOGIN_VERIFICATION',
+}
 
+export const authApi = {
+  /** POST /api/auth/send-email-otp — register: purpose EMAIL_VERIFICATION (no password) */
+  sendEmailOtp: (payload) =>
+    request('/auth/send-email-otp', { method: 'POST', body: payload }),
+
+  /** POST /api/auth/verify-email-otp */
+  verifyEmailOtp: (payload) =>
+    request('/auth/verify-email-otp', { method: 'POST', body: payload }),
+
+  /** POST /api/auth/register — otp + form fields */
   register: (payload) =>
     request('/auth/register', { method: 'POST', body: payload }),
 
-  // OTP login — commented out (password-only login)
-  // sendLoginOtp: (payload) =>
-  //   request('/auth/login/send-otp', { method: 'POST', body: payload }),
-  // resendLoginOtp: (payload) =>
-  //   request('/auth/login/resend-otp', { method: 'POST', body: payload }),
+  /** Preferred login OTP */
+  sendLoginOtp: (payload) =>
+    request('/auth/send-login-otp', { method: 'POST', body: payload }),
 
+  resendLoginOtp: (payload) =>
+    request('/auth/resend-login-otp', { method: 'POST', body: payload }),
+
+  /** POST /api/auth/login — email + password + otp */
   login: (payload) =>
     request('/auth/login', { method: 'POST', body: payload }),
 

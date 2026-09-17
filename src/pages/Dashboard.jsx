@@ -160,7 +160,7 @@ export default function Dashboard() {
             {/* Summary + CIBIL — data.summary + data.credit_score */}
             <div className="grid lg:grid-cols-3 gap-5">
               <Card className="lg:col-span-2 bg-gradient-to-br from-primary to-secondary text-white">
-                <div className="text-sm text-white/70">Current Balance</div>
+                <div className="text-sm text-white/70">Invested Balance</div>
                 {portfolioLoading ? (
                   <div className="text-2xl font-display font-bold mt-2 text-white/80">Loading…</div>
                 ) : portfolioError ? (
@@ -173,15 +173,22 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <div className="text-4xl font-display font-bold mt-1">
-                      {summary?.currentBalanceDisplay ?? '₹0'}
+                      {summary?.investedDisplay ?? '₹0'}
                     </div>
                     <div className="text-sm text-white/70 mt-2">
-                      Live portfolio from your FD, RD & wallet
+                      Live portfolio from your FD &amp; RD investments
                     </div>
                     <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/10">
                       <div>
-                        <div className="text-xs text-white/60">Invested</div>
-                        <div className="font-semibold">{summary?.investedDisplay ?? '₹0'}</div>
+                        <div className="text-xs text-white/60">Profit / Loss</div>
+                        <div className={`font-semibold ${summary?.profitLossPositive === false ? 'text-red-200' : 'text-emerald-200'}`}>
+                          {summary?.profitLossDisplay ?? '₹0'}
+                          {summary?.invested > 0 && (
+                            <span className="text-xs font-normal text-white/70 ml-1">
+                              ({summary.profitLossPct >= 0 ? '+' : ''}{Number(summary.profitLossPct || 0).toFixed(1)}%)
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <div className="text-xs text-white/60">Active FDs</div>
@@ -201,11 +208,19 @@ export default function Dashboard() {
                     Loading credit score…
                   </Card>
                 ) : (
-                  <CreditScoreCard
-                    result={creditCardResult}
-                    compact
-                    onCheckAgain={openCibilCheck}
-                  />
+                  <>
+                    <CreditScoreCard
+                      result={creditCardResult}
+                      compact
+                      onCheckAgain={openCibilCheck}
+                    />
+                    <Link
+                      to="/equifax"
+                      className="mt-2 inline-block text-xs font-semibold text-secondary hover:underline"
+                    >
+                      Open Equifax dashboard →
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

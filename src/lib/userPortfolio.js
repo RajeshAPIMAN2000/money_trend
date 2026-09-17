@@ -218,6 +218,15 @@ export function parseProfilePortfolio(payload) {
   const invested = Number(summaryRaw.invested ?? 0)
   const activeFds = Number(summaryRaw.active_fds ?? fds.length)
   const activeRds = Number(summaryRaw.active_rds ?? rds.length)
+  const profitLoss = Number(
+    summaryRaw.profit_loss
+      ?? summaryRaw.profitLoss
+      ?? summaryRaw.pnl
+      ?? (currentBalance - invested),
+  )
+  const profitLossPct = invested > 0
+    ? Number(summaryRaw.profit_loss_pct ?? summaryRaw.profitLossPct ?? ((profitLoss / invested) * 100))
+    : 0
 
   const investmentRows = Array.isArray(root.investments) && root.investments.length
     ? root.investments.map(mapInvestmentRow)
@@ -238,9 +247,15 @@ export function parseProfilePortfolio(payload) {
       currentBalanceDisplay: summaryRaw.current_balance_display ?? formatInr(currentBalance),
       invested,
       investedDisplay: summaryRaw.invested_display ?? formatInr(invested),
+      profitLoss,
+      profitLossDisplay: summaryRaw.profit_loss_display
+        ?? `${profitLoss >= 0 ? '+' : '-'}${formatInr(Math.abs(profitLoss))}`,
+      profitLossPct,
+      profitLossPositive: profitLoss >= 0,
       activeFds,
       activeRds,
       walletBalance: Number(summaryRaw.wallet_balance ?? 0),
+      walletBalanceDisplay: summaryRaw.wallet_balance_display ?? formatInr(Number(summaryRaw.wallet_balance ?? 0)),
       fdInvested: Number(summaryRaw.total_fd_invested ?? 0),
       rdCommitted: Number(summaryRaw.total_rd_committed ?? 0),
       fdMaturity: Number(summaryRaw.total_fd_maturity_value ?? 0),

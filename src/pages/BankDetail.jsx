@@ -10,6 +10,7 @@ import Card from '../components/ui/Card.jsx'
 import Badge from '../components/ui/Badge.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageSideLayout from '../components/common/PageSideLayout.jsx'
+import InvestNowModal from '../components/invest/InvestNowModal.jsx'
 
 const HISTORY_PERIODS = [
   { key: '1_year', label: '1 Year (Monthly)' },
@@ -134,6 +135,7 @@ export default function BankDetail() {
   const [historyPeriod, setHistoryPeriod] = useState('5_years')
   const [chartData, setChartData] = useState([])
   const [graphMeta, setGraphMeta] = useState(null)
+  const [investOpen, setInvestOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -274,8 +276,19 @@ export default function BankDetail() {
                     </div>
                   </div>
                 )}
-                <Button className="mt-5">Invest Now</Button>
+                <Button className="mt-5" type="button" onClick={() => setInvestOpen(true)}>
+                  Invest Now
+                </Button>
               </Card>
+
+              <InvestNowModal
+                open={investOpen}
+                onClose={() => setInvestOpen(false)}
+                product={product}
+                bank={detail.bank}
+                rates={productRates || []}
+                featuredRate={featuredRate}
+              />
 
               <div className="flex gap-2 mb-4">
                 <Link

@@ -155,7 +155,7 @@ function CompactCard() {
                 <h3 className="font-display font-bold text-[#1F2937] text-xl leading-snug tracking-tight">
                   Check Your{' '}
                   <ShinyText
-                    text="Civil Score"
+                    text="CIBIL Score"
                     color="#D97706"
                     shineColor="#FDE68A"
                     speed={3}
@@ -237,7 +237,7 @@ function FeaturedSection() {
   const { openCibilCheck } = useCibilCheck()
 
   return (
-    <section id="civil-score" className="scroll-mt-24">
+    <section id="cibil-score" className="scroll-mt-24">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-[0_30px_80px_rgba(15,23,42,0.6)] border border-slate-700/50">
         {/* Premium decorative elements */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -257,7 +257,7 @@ function FeaturedSection() {
                 Premium Feature
               </div>
               <h2 className="font-display text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-tight tracking-tight mb-6">
-                Check Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-100">Civil Score</span>
+                Check Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-100">CIBIL Score</span>
               </h2>
               <p className="text-white/70 text-lg leading-relaxed max-w-md font-medium">
                 Advanced credit analysis powered by RBI-compliant technology. Understand your financial health instantly with zero impact on your score.

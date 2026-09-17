@@ -1,10 +1,14 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { LayoutDashboard, LogOut, User, Wallet } from 'lucide-react'
+import { LayoutDashboard, LogOut, Phone, User, Wallet } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useAuthModal } from '../../context/AuthModalContext.jsx'
+import { useWallet } from '../../hooks/useDummyPayment.js'
+import { formatInr } from '../../lib/dummyPayment.js'
+import { initialsFromName } from '../../lib/userProfile.js'
 import { cn } from '../../lib/utils.js'
+import { CUSTOMER_CARE_DISPLAY, CUSTOMER_CARE_TEL } from '../../lib/company.js'
 import MoneyTrendLogo from './MoneyTrendLogo.jsx'
 
 const PUBLIC_NAV_LINKS = [
@@ -26,6 +30,7 @@ const AUTH_NAV_LINKS = [
 
 function UserMenu({ onNavigate, className }) {
   const { user, logout } = useAuth()
+  const { data: wallet } = useWallet({ enabled: true })
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -42,12 +47,9 @@ function UserMenu({ onNavigate, className }) {
     onNavigate?.()
   }
 
-  const initials = user?.name
-    ?.split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'U'
+  const displayName = user?.full_name || user?.name || user?.first_name || ''
+  const initials = initialsFromName(displayName)
+  const walletBalance = wallet?.balance ?? 0
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
@@ -64,7 +66,7 @@ function UserMenu({ onNavigate, className }) {
         {open && (
           <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white border border-slate-200 shadow-xl py-1.5 z-50">
             <div className="px-4 py-2 border-b border-slate-100">
-              <p className="text-sm font-medium text-ink truncate">{user?.name}</p>
+              <p className="text-sm font-medium text-ink truncate">{displayName || 'User'}</p>
               <p className="text-xs text-slate-500 truncate">{user?.email || user?.phone}</p>
             </div>
             <Link
@@ -99,11 +101,14 @@ function UserMenu({ onNavigate, className }) {
       <Link
         to="/dashboard"
         onClick={onNavigate}
-        className="flex items-center justify-center w-10 h-10 rounded-xl text-ink hover:text-secondary hover:bg-slate-100 transition-colors"
-        aria-label="Wallet"
+        className="flex items-center gap-2 h-10 pl-2.5 pr-3 rounded-xl text-ink hover:text-secondary hover:bg-slate-100 transition-colors"
+        aria-label={`Wallet balance ${formatInr(walletBalance)}`}
         title="Wallet"
       >
-        <Wallet className="w-5 h-5" />
+        <Wallet className="w-5 h-5 shrink-0" />
+        <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
+          {formatInr(walletBalance)}
+        </span>
       </Link>
     </div>
   )
@@ -161,6 +166,14 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
+            <a
+              href={`tel:${CUSTOMER_CARE_TEL}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-secondary px-2 py-2"
+              title="Customer Care"
+            >
+              <Phone className="w-4 h-4 text-secondary" />
+              <span className="hidden xl:inline">{CUSTOMER_CARE_DISPLAY}</span>
+            </a>
             {isAuthenticated ? (
               <UserMenu />
             ) : (
@@ -262,6 +275,14 @@ export default function Navbar() {
               </nav>
 
               <div className="shrink-0 p-4 border-t border-slate-100 space-y-2 bg-slate-50/80">
+                <a
+                  href={`tel:${CUSTOMER_CARE_TEL}`}
+                  onClick={close}
+                  className="flex items-center justify-center gap-2 w-full text-sm font-medium text-ink px-4 py-3 rounded-xl border border-slate-200 bg-white hover:border-secondary/40"
+                >
+                  <Phone className="w-4 h-4 text-secondary" />
+                  Customer Care {CUSTOMER_CARE_DISPLAY}
+                </a>
                 {isAuthenticated ? (
                   <UserMenu onNavigate={close} className="justify-center" />
                 ) : (

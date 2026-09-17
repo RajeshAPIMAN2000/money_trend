@@ -18,6 +18,7 @@ import BlogArticle from './pages/BlogArticle.jsx'
 import NewsArticle from './pages/NewsArticle.jsx'
 import Terms from './pages/Terms.jsx'
 import Privacy from './pages/Privacy.jsx'
+import Refund from './pages/Refund.jsx'
 import Products from './pages/Products.jsx'
 import ManualKYCPage from './pages/onboarding/ManualKYCPage.jsx'
 import NomineePage from './pages/onboarding/NomineePage.jsx'
@@ -26,6 +27,7 @@ import RegistrationSuccessPage from './pages/onboarding/RegistrationSuccessPage.
 import AuthModalRedirect from './components/auth/AuthModalRedirect.jsx'
 import AuthModal from './components/auth/AuthModal.jsx'
 import CibilCheckModal from './components/cibil/CibilCheckModal.jsx'
+import DummyPaymentModal from './components/payments/DummyPaymentModal.jsx'
 import { RequireAuth as UserRequireAuth } from './components/auth/ProtectedRoute.jsx'
 import AdminRoot from './admin/AdminRoot.jsx'
 import AdminLayout from './admin/layout/AdminLayout.jsx'
@@ -37,6 +39,7 @@ import UsersPage from './admin/pages/users/UsersPage.jsx'
 import AddUserPage from './admin/pages/users/AddUserPage.jsx'
 import UserDetailsPage from './admin/pages/users/UserDetailsPage.jsx'
 import EditUserPage from './admin/pages/users/EditUserPage.jsx'
+import SubAdminsPage from './admin/pages/users/SubAdminsPage.jsx'
 import UserActivityPage from './admin/pages/users/UserActivityPage.jsx'
 import UserDocumentsPage from './admin/pages/users/UserDocumentsPage.jsx'
 import KYCPage from './admin/pages/kyc/KYCPage.jsx'
@@ -51,12 +54,16 @@ import TransactionsPage from './admin/pages/transactions/TransactionsPage.jsx'
 import NewsPage from './admin/pages/content/NewsPage.jsx'
 import BlogsPage from './admin/pages/content/BlogsPage.jsx'
 import BannersPage from './admin/pages/content/BannersPage.jsx'
+import SeoManagementPage from './admin/pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './admin/pages/credit/AdminCreditChecksPage.jsx'
 import SettingsPage from './admin/pages/settings/SettingsPage.jsx'
 import CreditScorePage from './pages/CreditScorePage.jsx'
 import CreditScoreHistoryPage from './pages/CreditScoreHistoryPage.jsx'
+import EquifaxDashboardPage from './pages/EquifaxDashboardPage.jsx'
 import { ProfilePage, ChangePasswordPage } from './admin/pages/profile/ProfilePages.jsx'
 import { moduleRegistry } from './admin/data/moduleRegistry.js'
+import RequirePermission from './admin/components/shared/RequirePermission.jsx'
+import SeoHead from './components/common/SeoHead.jsx'
 
 const moduleSlugs = Object.keys(moduleRegistry)
 
@@ -65,6 +72,7 @@ function PublicApp() {
   useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   return (
     <div className="min-h-screen flex flex-col bg-bg">
+      <SeoHead />
       <Navbar />
       <main className="flex-1 animate-fade-in">
         <Routes>
@@ -78,6 +86,7 @@ function PublicApp() {
           <Route path="/dashboard" element={<UserRequireAuth><Dashboard /></UserRequireAuth>} />
           <Route path="/credit-score" element={<CreditScorePage />} />
           <Route path="/credit-score/history" element={<UserRequireAuth><CreditScoreHistoryPage /></UserRequireAuth>} />
+          <Route path="/equifax" element={<EquifaxDashboardPage />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsArticle />} />
           <Route path="/goals" element={<Goals />} />
@@ -90,6 +99,7 @@ function PublicApp() {
           <Route path="/blog/article" element={<Navigate to="/blog" replace />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/refund" element={<Refund />} />
         </Routes>
       </main>
       <Footer />
@@ -103,6 +113,7 @@ export default function App() {
       <AuthModalRedirect />
       <AuthModal />
       <CibilCheckModal />
+      <DummyPaymentModal />
       <Routes>
       {/* Legacy auth URLs → handled by AuthModalRedirect in PublicApp */}
       <Route path="/login" element={<Navigate to="/?auth=login" replace />} />
@@ -133,6 +144,9 @@ export default function App() {
             <Route path="users/add" element={<AddUserPage />} />
             <Route path="users/:id" element={<UserDetailsPage />} />
             <Route path="users/:id/edit" element={<EditUserPage />} />
+            <Route path="sub-admins" element={<RequirePermission permission="sub_admins"><SubAdminsPage /></RequirePermission>} />
+            <Route path="sub-admins/add" element={<Navigate to="/admin/sub-admins" replace />} />
+            <Route path="sub-admins/:id/edit" element={<Navigate to="/admin/sub-admins" replace />} />
             {/* <Route path="user-activity" element={<UserActivityPage />} /> */}
             {/* <Route path="user-documents" element={<UserDocumentsPage />} /> */}
             <Route path="kyc" element={<KYCPage />} />
@@ -144,8 +158,9 @@ export default function App() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="withdrawals" element={<WithdrawalsPage />} />
             <Route path="transactions" element={<TransactionsPage />} />
-            <Route path="news" element={<NewsPage />} />
-            <Route path="blogs" element={<BlogsPage />} />
+            <Route path="news" element={<RequirePermission permission="news"><NewsPage /></RequirePermission>} />
+            <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
+            <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
             <Route path="banners" element={<BannersPage />} />
             <Route path="credit-checks" element={<AdminCreditChecksPage />} />
             <Route path="settings" element={<SettingsPage />} />

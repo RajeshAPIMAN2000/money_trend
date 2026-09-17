@@ -5,6 +5,7 @@ class ApiError extends Error {
     super(message)
     this.status = status
     this.data = data
+    this.errorCode = data?.errorCode ?? data?.code ?? data?.error_code ?? null
   }
 }
 
@@ -77,6 +78,39 @@ export const api = {
   getAdminUser: (id) => request(`/admin/users/${encodeURIComponent(id)}`, { admin: true }),
   updateUserKycStatus: (id, body) =>
     request(`/admin/users/${encodeURIComponent(id)}/kyc-status`, { method: 'PATCH', body, admin: true }),
+
+  // Sub-admins (created by Super Admin — email, password, phone, roles)
+  getAdminSubAdmins: () => request('/admin/sub-admins', { admin: true }),
+  getAdminSubAdmin: (id) =>
+    request(`/admin/sub-admins/${encodeURIComponent(id)}`, { admin: true }),
+  createAdminSubAdmin: (body) =>
+    request('/admin/sub-admins', { method: 'POST', body, admin: true }),
+  updateAdminSubAdmin: (id, body) =>
+    request(`/admin/sub-admins/${encodeURIComponent(id)}`, { method: 'PUT', body, admin: true }),
+  deleteAdminSubAdmin: (id) =>
+    request(`/admin/sub-admins/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
+
+  // SEO management (admin)
+  getAdminSeoPages: () => request('/admin/seo/pages', { admin: true }),
+  upsertAdminSeoPage: (body) =>
+    request('/admin/seo/page', { method: 'PUT', body, admin: true }),
+  getAdminSeoSettings: () => request('/admin/seo/settings', { admin: true }),
+  updateAdminSeoSettings: (body) =>
+    request('/admin/seo/settings', { method: 'PUT', body, admin: true }),
+  /** Combined fallback if split endpoints are unavailable */
+  getAdminSeo: () => request('/admin/seo', { admin: true }),
+  updateAdminSeo: (body) =>
+    request('/admin/seo', { method: 'PUT', body, admin: true }),
+
+  // SEO public (frontend / Google)
+  getSeoPage: (path) => {
+    const q = new URLSearchParams({ path: String(path || '/home') })
+    return request(`/seo/page?${q}`)
+  },
+  getSeoAnalytics: () => request('/seo/analytics'),
+  /** Prefer API routes; backends may also serve root /sitemap.xml & /robots.txt */
+  getSeoSitemapUrl: () => `${API_BASE}/sitemap.xml`,
+  getSeoRobotsUrl: () => `${API_BASE}/robots.txt`,
 
   // Admin Investments
   getAdminFixedDeposits: (params = {}) => {
@@ -180,21 +214,158 @@ export const api = {
   getMarketHistory: (period) => request(`/market/history?period=${encodeURIComponent(period)}`),
   getMarketRepoHistory: () => request('/market/repo-history'),
 
-  // Credit Check (backend → Experian; frontend never talks to Experian)
+  // Credit Check — public suite (CIBIL + Experian + Equifax)
   submitCreditCheck: (body) =>
     request('/credit-check', { method: 'POST', body }),
-  getCreditCheckLatest: () =>
-    request('/credit-check/latest'),
-  getCreditChecks: (params = {}) => {
-    const q = new URLSearchParams(params).toString()
-    return request(`/credit-check${q ? `?${q}` : ''}`)
+  runCreditCheck: (body) =>
+    request('/credit-check/run', { method: 'POST', body }),
+  getCreditCheckLatest: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mobile) q.set('mobile', String(params.mobile).replace(/\D/g, ''))
+    const qs = q.toString()
+    return request(`/credit-check/latest${qs ? `?${qs}` : ''}`)
   },
-  getCreditCheckById: (id) =>
-    request(`/credit-check/${encodeURIComponent(id)}`),
+  getCreditChecks: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mobile) q.set('mobile', String(params.mobile).replace(/\D/g, ''))
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/credit-check${qs ? `?${qs}` : ''}`)
+  },
+  getCreditCheckById: (id, params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mobile) q.set('mobile', String(params.mobile).replace(/\D/g, ''))
+    const qs = q.toString()
+    return request(`/credit-check/${encodeURIComponent(id)}${qs ? `?${qs}` : ''}`)
+  },
+  getCreditCheckReportLatest: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mobile) q.set('mobile', String(params.mobile).replace(/\D/g, ''))
+    const qs = q.toString()
+    return request(`/credit-check/report/latest${qs ? `?${qs}` : ''}`)
+  },
+  getCreditCheckReport: (id, params = {}) => {
+    const q = new URLSearchParams()
+    if (params.mobile) q.set('mobile', String(params.mobile).replace(/\D/g, ''))
+    if (params.download) q.set('download', '1')
+    const qs = q.toString()
+    return request(`/credit-check/${encodeURIComponent(id)}/report${qs ? `?${qs}` : ''}`)
+  },
   getAdminCreditChecks: (params = {}) => {
     const q = new URLSearchParams(params).toString()
     return request(`/admin/credit-checks${q ? `?${q}` : ''}`, { admin: true })
   },
+
+  /**
+   * Equifax consumer engagement (authenticated) — MoneyTrend JWT only.
+   * Tries /credit-check/* first, then /equifax/* fallback (never Equifax secrets).
+   */
+  enrollEquifax: async (body) => {
+    try {
+      return await request('/credit-check/enrollment', { method: 'POST', body })
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request('/equifax/enrollment', { method: 'POST', body })
+      }
+      throw err
+    }
+  },
+  getEquifaxEnrollment: async () => {
+    try {
+      return await request('/credit-check/enrollment')
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        try {
+          return await request('/equifax/enrollment')
+        } catch (err2) {
+          // Both missing enrollment / route → bubble original 404 as "not enrolled"
+          throw err2?.status ? err2 : err
+        }
+      }
+      throw err
+    }
+  },
+  requestEquifaxScore: async (body) => {
+    try {
+      return await request('/credit-check/score', { method: 'POST', body })
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request('/equifax/credit-score', { method: 'POST', body })
+      }
+      throw err
+    }
+  },
+  getEquifaxCreditScore: async (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.featureName) q.set('featureName', String(params.featureName))
+    if (params.scoreType) q.set('scoreType', String(params.scoreType))
+    const qs = q.toString()
+    const headers = params.featureName ? { featureName: String(params.featureName) } : {}
+    try {
+      return await request(`/credit-check/score/latest${qs ? `?${qs}` : ''}`, { headers })
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request(`/equifax/credit-score${qs ? `?${qs}` : ''}`, { headers })
+      }
+      throw err
+    }
+  },
+  getEquifaxCreditScoreHistory: async (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.historicalLimit != null) q.set('historicalLimit', String(params.historicalLimit))
+    if (params.featureName) q.set('featureName', String(params.featureName))
+    const qs = q.toString()
+    try {
+      return await request(`/credit-check/score/history${qs ? `?${qs}` : ''}`)
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request(`/equifax/credit-score/history${qs ? `?${qs}` : ''}`)
+      }
+      throw err
+    }
+  },
+  getEquifaxCreditReport: async (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.reportType) q.set('reportType', String(params.reportType))
+    const qs = q.toString()
+    try {
+      return await request(`/credit-check/report${qs ? `?${qs}` : ''}`)
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request('/equifax/credit-report')
+      }
+      throw err
+    }
+  },
+  getEquifaxReportSummary: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.creditReportId) q.set('creditReportId', String(params.creditReportId))
+    const qs = q.toString()
+    return request(`/credit-check/report/summary${qs ? `?${qs}` : ''}`)
+  },
+  getEquifaxReportDetails: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.creditReportId) q.set('creditReportId', String(params.creditReportId))
+    if (params.section) q.set('section', String(params.section))
+    const qs = q.toString()
+    return request(`/credit-check/report/details${qs ? `?${qs}` : ''}`)
+  },
+  getEquifaxMonitoring: async (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.sync != null) q.set('sync', String(Boolean(params.sync)))
+    const qs = q.toString()
+    try {
+      return await request(`/credit-check/monitoring${qs ? `?${qs}` : ''}`)
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return request('/equifax/credit-monitoring')
+      }
+      throw err
+    }
+  },
+  getEquifaxMonitoringAlert: (alertId) =>
+    request(`/credit-check/monitoring/${encodeURIComponent(alertId)}`),
 
   // Home
   getHome: () => request('/home'),
@@ -267,6 +438,53 @@ export const api = {
   getNews: ({ limit = 10, offset = 0 } = {}) =>
     request(`/articles/news?limit=${limit}&offset=${offset}`),
   getNewsArticle: (id) => request(`/articles/news/${encodeURIComponent(id)}`),
+
+  // Dummy payment gateway
+  getDummyPaymentConfig: () => request('/payments/dummy/config'),
+  createDummyPayment: (body) =>
+    request('/payments/dummy/create', { method: 'POST', body }),
+  payDummyPayment: (body) =>
+    request('/payments/dummy/pay', { method: 'POST', body }),
+  getDummyCibilUnlock: () => request('/payments/dummy/cibil-unlock'),
+  getDummyPaymentOrder: (orderId) =>
+    request(`/payments/dummy/${encodeURIComponent(orderId)}`),
+
+  // Wallet
+  getWallet: () => request('/wallet/'),
+  /** GET /wallet/can-invest?type=fd|rd&amount=... — wallet-first invest check */
+  getWalletCanInvest: ({ type, amount } = {}) => {
+    const q = new URLSearchParams()
+    if (type) q.set('type', String(type))
+    if (amount != null && amount !== '') q.set('amount', String(amount))
+    const qs = q.toString()
+    return request(`/wallet/can-invest${qs ? `?${qs}` : ''}`)
+  },
+  getWalletTransactions: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/wallet/transactions${q ? `?${q}` : ''}`)
+  },
+  getWalletBankAccount: () => request('/wallet/bank-account'),
+  saveWalletBankAccount: (body) =>
+    request('/wallet/bank-account', { method: 'PUT', body }),
+  createWalletBankAccount: (body) =>
+    request('/wallet/bank-account', { method: 'POST', body }),
+  withdrawWallet: (body) =>
+    request('/wallet/withdraw', { method: 'POST', body }),
+  getWalletTaxReport: () => request('/wallet/tax-report'),
+
+  // FD investments (wallet-funded after dummy pay)
+  createFd: (body) => request('/fd/', { method: 'POST', body }),
+  getFds: () => request('/fd/'),
+  getFdSummary: () => request('/fd/summary'),
+  breakFd: (id) => request(`/fd/${encodeURIComponent(id)}/break`, { method: 'POST' }),
+  deleteFd: (id) => request(`/fd/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // RD investments
+  createRd: (body) => request('/market/rd', { method: 'POST', body }),
+  getRds: () => request('/market/rd'),
+  getRdSummary: () => request('/market/rd/summary'),
+  breakRd: (id) => request(`/market/rd/${encodeURIComponent(id)}/break`, { method: 'POST' }),
+  deleteRd: (id) => request(`/market/rd/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 }
 
 export { ApiError, getToken, getAdminToken, request }

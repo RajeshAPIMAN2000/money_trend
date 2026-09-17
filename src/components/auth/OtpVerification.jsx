@@ -9,10 +9,12 @@ function formatCountdown(seconds) {
 
 export default function OtpVerification({
   phoneMasked,
+  destinationLabel,
+  channel = 'sms',
   otp,
   onOtpChange,
   seconds,
-  resendCooldown,
+  resendData,
   expired,
   running,
   error,
@@ -25,16 +27,18 @@ export default function OtpVerification({
   backLabel = '← Back',
   children,
 }) {
-  const canResend = !running && resendCooldown <= 0
+  const canResend = !running && resendData <= 0
+  const channelText = channel === 'email' ? 'email' : 'SMS'
+  const destination = destinationLabel || phoneMasked
 
   return (
     <div className="space-y-4">
-      {phoneMasked && (
+      {destination && (
         <>
           <p className="text-sm text-slate-600 text-center">
-            Enter the 6-digit OTP sent via SMS to
+            Enter the 6-digit OTP sent via {channelText} to
           </p>
-          <p className="text-sm font-semibold text-primary text-center">{phoneMasked}</p>
+          <p className="text-sm font-semibold text-primary text-center">{destination}</p>
         </>
       )}
 
@@ -73,8 +77,8 @@ export default function OtpVerification({
           >
             Resend OTP
           </button>
-        ) : resendCooldown > 0 ? (
-          <>Resend OTP in <span className="font-semibold tabular-nums">{resendCooldown}s</span></>
+        ) : resendData > 0 ? (
+          <>Resend OTP in <span className="font-semibold tabular-nums">{resendData}s</span></>
         ) : (
           <>Resend available after OTP expires</>
         )}

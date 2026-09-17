@@ -1,9 +1,9 @@
 import {
-  LayoutDashboard, Users, ShieldCheck, Activity, KeyRound,
+  LayoutDashboard, Users, ShieldCheck, UserCog,
   TrendingUp, PieChart, Landmark, RefreshCw, Repeat, Briefcase,
   ArrowDownToLine, ArrowUpFromLine, ShoppingCart, History,
   BarChart3, LineChart, Gem, Bitcoin,
-  Newspaper, BookOpen, Image, FileText,
+  Newspaper, BookOpen, Image, FileText, Search,
   Bell, Mail, MessageSquare,
   FileBarChart, Download, Settings, CreditCard, ScrollText, Server,
 } from 'lucide-react'
@@ -19,21 +19,16 @@ export const adminNav = [
     icon: Users,
     children: [
       { label: 'Users', path: '/admin/users', icon: Users },
+      { label: 'Sub Admins', path: '/admin/sub-admins', icon: UserCog },
       { label: 'KYC Verification', path: '/admin/kyc', icon: ShieldCheck },
-      // { label: 'User Activity', path: '/admin/user-activity', icon: Activity },
-      // { label: 'User Documents', path: '/admin/user-documents', icon: FileText },
-      // { label: 'Roles & Permissions', path: '/admin/roles', icon: KeyRound },
     ],
   },
   {
     label: 'Investments',
     icon: TrendingUp,
     children: [
-      // { label: 'Stocks', path: '/admin/stocks', icon: TrendingUp },
-      // { label: 'Mutual Funds', path: '/admin/mutual-funds', icon: PieChart },
       { label: 'Fixed Deposits', path: '/admin/fixed-deposits', icon: Landmark },
       { label: 'Recurring Deposits', path: '/admin/recurring-deposits', icon: RefreshCw },
-      // { label: 'SIP Investments', path: '/admin/sip', icon: Repeat },
       { label: 'Portfolio', path: '/admin/portfolio', icon: Briefcase },
     ],
   },
@@ -47,24 +42,14 @@ export const adminNav = [
       { label: 'Transaction History', path: '/admin/transactions', icon: History },
     ],
   },
-  // {
-  //   label: 'Market & Data',
-  //   icon: BarChart3,
-  //   children: [
-  //     { label: 'Market Overview', path: '/admin/market', icon: BarChart3 },
-  //     { label: 'Indices', path: '/admin/indices', icon: LineChart },
-  //     { label: 'Commodities', path: '/admin/commodities', icon: Gem },
-  //     { label: 'Crypto Currency', path: '/admin/crypto', icon: Bitcoin },
-  //   ],
-  // },
   {
     label: 'Content Management',
     icon: FileText,
     children: [
       { label: 'News', path: '/admin/news', icon: Newspaper },
       { label: 'Blogs', path: '/admin/blogs', icon: BookOpen },
+      { label: 'SEO Management', path: '/admin/seo', icon: Search },
       { label: 'Banners', path: '/admin/banners', icon: Image },
-      // { label: 'CMS Pages', path: '/admin/cms', icon: FileText },
     ],
   },
   {

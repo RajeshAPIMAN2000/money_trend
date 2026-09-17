@@ -8,6 +8,7 @@ import UsersPage from './pages/users/UsersPage.jsx'
 import AddUserPage from './pages/users/AddUserPage.jsx'
 import UserDetailsPage from './pages/users/UserDetailsPage.jsx'
 import EditUserPage from './pages/users/EditUserPage.jsx'
+import SubAdminsPage from './pages/users/SubAdminsPage.jsx'
 import UserActivityPage from './pages/users/UserActivityPage.jsx'
 import UserDocumentsPage from './pages/users/UserDocumentsPage.jsx'
 import KYCPage from './pages/kyc/KYCPage.jsx'
@@ -22,11 +23,13 @@ import TransactionsPage from './pages/transactions/TransactionsPage.jsx'
 import NewsPage from './pages/content/NewsPage.jsx'
 import BlogsPage from './pages/content/BlogsPage.jsx'
 import BannersPage from './pages/content/BannersPage.jsx'
+import SeoManagementPage from './pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './pages/credit/AdminCreditChecksPage.jsx'
 import AdminSupportPage from './pages/support/AdminSupportPage.jsx'
 import SettingsPage from './pages/settings/SettingsPage.jsx'
 import { ProfilePage, ChangePasswordPage } from './pages/profile/ProfilePages.jsx'
 import { moduleRegistry } from './data/moduleRegistry.js'
+import RequirePermission from './components/shared/RequirePermission.jsx'
 import { Route, Navigate } from 'react-router-dom'
 
 const moduleRoutes = Object.keys(moduleRegistry)
@@ -45,8 +48,9 @@ export function AdminRouteTree() {
         <Route path="users/add" element={<AddUserPage />} />
         <Route path="users/:id" element={<UserDetailsPage />} />
         <Route path="users/:id/edit" element={<EditUserPage />} />
-        {/* <Route path="user-activity" element={<UserActivityPage />} /> */}
-        {/* <Route path="user-documents" element={<UserDocumentsPage />} /> */}
+        <Route path="sub-admins" element={<RequirePermission permission="sub_admins"><SubAdminsPage /></RequirePermission>} />
+        <Route path="sub-admins/add" element={<Navigate to="/admin/sub-admins" replace />} />
+        <Route path="sub-admins/:id/edit" element={<Navigate to="/admin/sub-admins" replace />} />
         <Route path="kyc" element={<KYCPage />} />
         <Route path="kyc/:userId" element={<KYCDetailPage />} />
         <Route path="fixed-deposits" element={<FixedDepositsPage />} />
@@ -56,8 +60,9 @@ export function AdminRouteTree() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="withdrawals" element={<WithdrawalsPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
-        <Route path="news" element={<NewsPage />} />
-        <Route path="blogs" element={<BlogsPage />} />
+        <Route path="news" element={<RequirePermission permission="news"><NewsPage /></RequirePermission>} />
+        <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
+        <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
         <Route path="banners" element={<BannersPage />} />
         <Route path="credit-checks" element={<AdminCreditChecksPage />} />
         <Route path="support" element={<AdminSupportPage />} />

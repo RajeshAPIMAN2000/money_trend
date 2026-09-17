@@ -111,16 +111,33 @@ export function AuthProvider({ children }) {
   //   return authApi.resendRegisterOtp({ phone: data.phone })
   // }, [])
 
+  const sendRegisterEmailOtp = useCallback((data) => {
+    return authApi.sendEmailOtp({
+      email: data.email,
+      purpose: 'EMAIL_VERIFICATION',
+      first_name: data.first_name || data.firstName || undefined,
+    })
+  }, [])
+
+  const verifyRegisterEmailOtp = useCallback((data) => {
+    return authApi.verifyEmailOtp({
+      email: data.email,
+      otp: data.otp,
+      purpose: 'EMAIL_VERIFICATION',
+    })
+  }, [])
+
   const completeRegister = useCallback(async (data) => {
-    const res = await authApi.register({
+    const body = {
       full_name: data.full_name,
       email: data.email,
       phone: data.phone,
       password: data.password,
       confirm_password: data.confirm_password,
       date_of_birth: data.date_of_birth,
-      // otp: data.otp, // OTP registration disabled
-    })
+    }
+    if (data.otp) body.otp = data.otp
+    const res = await authApi.register(body)
     return applyAuthResult(res)
   }, [applyAuthResult])
 
@@ -138,12 +155,58 @@ export function AuthProvider({ children }) {
   //   })
   // }, [])
 
-  const completeLogin = useCallback(async (data) => {
-    const res = await authApi.login({
+  const sendLoginEmailOtp = useCallback(async (data) => {
+    const body = {
       email: data.email,
       password: data.password,
-      // otp: data.otp, // OTP login disabled
+    }
+    try {
+      return await authApi.sendLoginOtp(body)
+    } catch (err) {
+      // Fallback: send-email-otp with LOGIN_VERIFICATION
+      if (err?.status === 404 || err?.status === 405) {
+        return authApi.sendEmailOtp({
+          ...body,
+          purpose: 'LOGIN_VERIFICATION',
+        })
+      }
+      throw err
+    }
+  }, [])
+
+  const resendLoginEmailOtp = useCallback(async (data) => {
+    const body = {
+      email: data.email,
+      password: data.password,
+    }
+    try {
+      return await authApi.resendLoginOtp(body)
+    } catch (err) {
+      if (err?.status === 404 || err?.status === 405) {
+        return authApi.sendEmailOtp({
+          ...body,
+          purpose: 'LOGIN_VERIFICATION',
+        })
+      }
+      throw err
+    }
+  }, [])
+
+  const verifyLoginEmailOtp = useCallback((data) => {
+    return authApi.verifyEmailOtp({
+      email: data.email,
+      otp: data.otp,
+      purpose: 'LOGIN_VERIFICATION',
     })
+  }, [])
+
+  const completeLogin = useCallback(async (data) => {
+    const body = {
+      email: data.email,
+      password: data.password,
+    }
+    if (data.otp) body.otp = data.otp
+    const res = await authApi.login(body)
     return applyAuthResult(res)
   }, [applyAuthResult])
 
@@ -179,9 +242,12 @@ export function AuthProvider({ children }) {
       hasNominee,
       // sendRegisterOtp, // OTP disabled
       // resendRegisterOtp, // OTP disabled
+      sendRegisterEmailOtp,
+      verifyRegisterEmailOtp,
       completeRegister,
-      // sendLoginOtp, // OTP disabled
-      // resendLoginOtp, // OTP disabled
+      sendLoginEmailOtp,
+      resendLoginEmailOtp,
+      verifyLoginEmailOtp,
       completeLogin,
       logout,
       refreshUser,

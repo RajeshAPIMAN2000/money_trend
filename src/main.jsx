@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { AuthModalProvider } from './context/AuthModalContext.jsx'
 import { CibilCheckProvider } from './context/CibilCheckContext.jsx'
+import { PaymentModalProvider } from './context/PaymentModalContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
 import App from './App.jsx'
 import './index.css'
@@ -26,9 +27,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <AuthModalProvider>
             <CibilCheckProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
+              <PaymentModalProvider>
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
+              </PaymentModalProvider>
             </CibilCheckProvider>
           </AuthModalProvider>
         </AuthProvider>

@@ -1,4 +1,9 @@
 import { Link } from 'react-router-dom'
+import {
+  CUSTOMER_CARE_DISPLAY,
+  CUSTOMER_CARE_TEL,
+  SUPPORT_EMAIL,
+} from '../../lib/company.js'
 
 export default function LegalPage({ title, lastUpdated, children }) {
   return (
@@ -8,23 +13,26 @@ export default function LegalPage({ title, lastUpdated, children }) {
         <h1 className="text-3xl md:text-4xl font-display font-bold text-primary">{title}</h1>
         <p className="mt-2 text-sm text-slate-500">Last updated: {lastUpdated}</p>
         <div className="mt-5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <strong>Regulatory notice:</strong> Fintech Demo Pvt Ltd operates in alignment with applicable
-          Reserve Bank of India (RBI) and Securities and Exchange Board of India (SEBI) norms, the Prevention of
-          Money Laundering Act, 2002 (PMLA), and the Digital Personal Data Protection Act, 2023 (DPDP Act). This
-          document is for transparency; it does not substitute personalised legal or investment advice.
+          <strong>Important notice:</strong> MoneyTrend Private Limited is a technology and financial-information
+          platform and is not a lender, loan provider, loan marketplace, loan referral platform or LSP unless separately
+          authorised. Third-party bank, NBFC and credit-bureau products remain subject to their own terms and eligibility.
         </div>
       </header>
       <div className="prose prose-slate max-w-none mt-8 legal-content">{children}</div>
       <footer className="mt-12 pt-8 border-t border-slate-200 text-sm text-slate-600">
         <p>
           Questions? Contact{' '}
-          <a href="mailto:legal@fintechdemo.in" className="text-secondary font-medium hover:underline">legal@fintechdemo.in</a>
-          {' '}or visit our <Link to="/support" className="text-secondary font-medium hover:underline">Support</Link> page.
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="text-secondary font-medium hover:underline">{SUPPORT_EMAIL}</a>
+          {' '}or call{' '}
+          <a href={`tel:${CUSTOMER_CARE_TEL}`} className="text-secondary font-medium hover:underline">{CUSTOMER_CARE_DISPLAY}</a>
+          {' '}· <Link to="/support" className="text-secondary font-medium hover:underline">Support</Link>
         </p>
         <p className="mt-2">
           <Link to="/terms" className="text-secondary hover:underline">Terms &amp; Conditions</Link>
           {' · '}
           <Link to="/privacy" className="text-secondary hover:underline">Privacy Policy</Link>
+          {' · '}
+          <Link to="/refund" className="text-secondary hover:underline">Refund Policy</Link>
         </p>
       </footer>
     </article>

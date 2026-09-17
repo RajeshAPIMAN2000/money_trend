@@ -13,6 +13,9 @@ import KycSummaryChart from '../components/dashboard/KycSummaryChart.jsx'
 import SystemStatus from '../components/dashboard/SystemStatus.jsx'
 import { Card, CardContent } from '../components/ui/AdminCard.jsx'
 import { useAdminDashboard } from '../hooks/useAdminDashboard.js'
+import { useAdmin } from '../context/AdminContext.jsx'
+import { isSuperAdmin } from '../data/admin-roles.js'
+import SubAdminDashboard from './SubAdminDashboard.jsx'
 import { cn } from '../../lib/utils.js'
 
 const mainKpiConfig = [
@@ -37,6 +40,17 @@ const shellProps = {
 }
 
 export default function AdminDashboard() {
+  const { adminUser } = useAdmin()
+
+  // Sub-admins get a focused dashboard with only their role modules
+  if (!isSuperAdmin(adminUser)) {
+    return <SubAdminDashboard />
+  }
+
+  return <SuperAdminDashboard />
+}
+
+function SuperAdminDashboard() {
   const { data, isLoading, error } = useAdminDashboard()
 
   if (isLoading) {

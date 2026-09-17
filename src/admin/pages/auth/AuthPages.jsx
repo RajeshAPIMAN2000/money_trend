@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'motion/react'
-import { Lock, Mail } from 'lucide-react'
+import { Lock, Mail, Shield } from 'lucide-react'
 import MoneyTrendLogo from '../../../components/common/MoneyTrendLogo.jsx'
 import AdminInput from '../../components/ui/AdminInput.jsx'
 import AdminButton from '../../components/ui/AdminButton.jsx'
@@ -11,24 +11,58 @@ import { ApiError } from '../../../lib/api.js'
 
 function AuthLayout({ title, subtitle, children, footer }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1F3A] via-[#0F2744] to-[#0B1F3A] p-4">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4 sm:p-6">
+      {/* Light brand atmosphere — logo stays readable */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 10% 0%, rgba(37, 99, 235, 0.12), transparent 55%),'
+            + 'radial-gradient(ellipse 70% 50% at 90% 100%, rgba(16, 185, 129, 0.10), transparent 50%),'
+            + 'linear-gradient(165deg, #F1F5F9 0%, #E8EEF6 42%, #F8FAFC 100%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),'
+            + 'linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+      <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-400/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 -left-20 w-96 h-96 rounded-full bg-emerald-400/10 blur-3xl" />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.35 }}
+        className="relative w-full max-w-md"
       >
-        <div className="text-center mb-8">
-          <div className="inline-flex justify-center mb-4">
-            <MoneyTrendLogo variant="auth" />
+        <div className="rounded-3xl bg-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.25)] border border-slate-200/80 overflow-hidden">
+          {/* Logo on white — always visible */}
+          <div className="px-8 pt-8 pb-5 text-center border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+            <div className="inline-flex justify-center rounded-2xl bg-white px-4 py-3 shadow-sm border border-slate-100">
+              <MoneyTrendLogo variant="auth" className="!h-20 sm:!h-24 !max-w-[14rem]" />
+            </div>
+            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+              <Shield className="w-3.5 h-3.5 text-blue-600" />
+              Admin Panel
+            </div>
           </div>
-          <p className="text-sm text-slate-400">Admin Panel</p>
+
+          <div className="px-8 py-7">
+            <h2 className="text-xl font-display font-bold text-slate-900">{title}</h2>
+            {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+            <div className="mt-6">{children}</div>
+            {footer && <div className="mt-6 text-center text-sm">{footer}</div>}
+          </div>
         </div>
-        <div className="rounded-2xl bg-white dark:bg-slate-900 p-8 shadow-2xl border border-white/10">
-          <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white">{title}</h2>
-          {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
-          <div className="mt-6">{children}</div>
-          {footer && <div className="mt-6 text-center text-sm">{footer}</div>}
-        </div>
+
+        <p className="mt-5 text-center text-xs text-slate-500">
+          MoneyTrend secure access · Authorized staff only
+        </p>
       </motion.div>
     </div>
   )
@@ -55,9 +89,11 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to your admin account"
+      subtitle="Sign in with your admin or sub-admin credentials"
       footer={
-        <Link to="/admin/forgot-password" className="text-blue-600 hover:underline">Forgot password?</Link>
+        <Link to="/admin/forgot-password" className="text-blue-600 hover:underline font-medium">
+          Forgot password?
+        </Link>
       }
     >
       {error && (
@@ -89,7 +125,7 @@ export function ForgotPasswordPage() {
     <AuthLayout
       title="Forgot password"
       subtitle="Enter your email to receive a reset link"
-      footer={<Link to="/admin/login" className="text-blue-600 hover:underline">Back to login</Link>}
+      footer={<Link to="/admin/login" className="text-blue-600 hover:underline font-medium">Back to login</Link>}
     >
       {isSubmitSuccessful ? (
         <div className="text-center py-4">
@@ -118,7 +154,7 @@ export function ResetPasswordPage() {
     <AuthLayout
       title="Reset password"
       subtitle="Create a new password for your account"
-      footer={<Link to="/admin/login" className="text-blue-600 hover:underline">Back to login</Link>}
+      footer={<Link to="/admin/login" className="text-blue-600 hover:underline font-medium">Back to login</Link>}
     >
       <form onSubmit={handleSubmit(() => navigate('/admin/login'))} className="space-y-4">
         <AdminInput {...register('password', { required: true, minLength: 8 })} type="password" icon={<Lock className="w-4 h-4" />} placeholder="New password" />

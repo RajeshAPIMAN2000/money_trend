@@ -72,7 +72,15 @@ export default function CreditScoreHistoryPage() {
                         {item.score != null ? item.score : '—'}
                       </td>
                       <td className="py-3 px-4">
-                        <Badge tone={item.status === 'completed' ? 'green' : 'slate'}>
+                        <Badge
+                          tone={
+                            item.status === 'success' || item.status === 'completed'
+                              ? 'green'
+                              : item.status === 'pending'
+                                ? 'blue'
+                                : 'slate'
+                          }
+                        >
                           {item.status}
                         </Badge>
                       </td>
