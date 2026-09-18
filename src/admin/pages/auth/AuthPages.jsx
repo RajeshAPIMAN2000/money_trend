@@ -41,14 +41,16 @@ function AuthLayout({ title, subtitle, children, footer }) {
         className="relative w-full max-w-md"
       >
         <div className="rounded-3xl bg-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.25)] border border-slate-200/80 overflow-hidden">
-          {/* Logo on white — always visible */}
-          <div className="px-8 pt-8 pb-5 text-center border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
-            <div className="inline-flex justify-center rounded-2xl bg-white px-4 py-3 shadow-sm border border-slate-100">
-              <MoneyTrendLogo variant="auth" className="!h-20 sm:!h-24 !max-w-[14rem]" />
-            </div>
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
-              Admin Panel
+          {/* Logo on white — always visible; logo above Admin Panel */}
+          <div className="px-8 pt-8 pb-5 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+            <div className="flex flex-col items-center gap-4">
+              <div className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-slate-100">
+                <MoneyTrendLogo variant="auth" className="!h-20 sm:!h-24 !max-w-[14rem]" />
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+                <Shield className="w-3.5 h-3.5 text-blue-600" />
+                Admin Panel
+              </div>
             </div>
           </div>
 
