@@ -18,8 +18,8 @@ function getAdminToken() {
 }
 
 async function request(path, options = {}) {
-  const { admin = false, body, headers = {}, ...rest } = options
-  const token = admin ? getAdminToken() : getToken()
+  const { admin = false, skipAuth = false, body, headers = {}, ...rest } = options
+  const token = skipAuth ? null : (admin ? getAdminToken() : getToken())
 
   const config = {
     cache: 'no-store',
@@ -72,7 +72,19 @@ export const api = {
   getNominees: () => request('/kyc/nominee'),
 
   // Admin
-  adminLogin: (data) => request('/admin/login', { method: 'POST', body: data }),
+  adminLogin: ({ email, password, user_id, userId } = {}) => {
+    const id = String(email ?? user_id ?? userId ?? '').trim()
+    return request('/admin/login', {
+      method: 'POST',
+      skipAuth: true,
+      body: {
+        email: id,
+        password: String(password ?? ''),
+        user_id: id,
+        userId: id,
+      },
+    })
+  },
   getAdminDashboard: () => request('/admin/dashboard', { admin: true }),
   getAdminUsers: () => request('/admin/users', { admin: true }),
   getAdminUser: (id) => request(`/admin/users/${encodeURIComponent(id)}`, { admin: true }),

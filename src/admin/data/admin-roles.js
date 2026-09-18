@@ -52,10 +52,12 @@ function pushRole(list, value) {
   }
   const s = String(value).trim().toLowerCase()
   if (!s) return
+  // API may send "blog"; panel roles use "blogs"
+  const normalized = s === 'blog' ? 'blogs' : s
   // "content.blogs" → also keep "blogs"
-  list.push(s)
-  const parts = s.split(/[./]/)
-  if (parts.length > 1) list.push(parts[parts.length - 1])
+  list.push(normalized)
+  const parts = normalized.split(/[./]/)
+  if (parts.length > 1) list.push(parts[parts.length - 1] === 'blog' ? 'blogs' : parts[parts.length - 1])
 }
 
 /** Normalize roles array from API / stored admin user */

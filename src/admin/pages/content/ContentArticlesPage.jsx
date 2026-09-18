@@ -101,14 +101,16 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
         <DataTable
           loading={isLoading}
           columns={[
+            { key: 'image', label: 'Image' },
             { key: 'title', label: 'Title' },
             { key: 'category', label: 'Category' },
             { key: 'author', label: 'Author' },
-            { key: 'views', label: 'Views' },
+            // { key: 'views', label: 'Views' },
             { key: 'published', label: 'Published' },
             { key: 'status', label: 'Status' },
           ]}
           rows={rows}
+          imageColumn="image"
           statusColumn="status"
           searchPlaceholder="Search articles..."
           filters={config.filters}

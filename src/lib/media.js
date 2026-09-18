@@ -37,8 +37,16 @@ export function extractImagePath(item) {
   return item.image
     ?? item.image_url
     ?? item.imageUrl
+    ?? item.image_path
+    ?? item.imagePath
     ?? item.thumbnail
+    ?? item.thumbnail_url
     ?? item.cover_image
+    ?? item.coverImage
     ?? item.featured_image
+    ?? item.featuredImage
+    ?? item.photo
+    ?? item.media?.url
+    ?? item.media?.path
     ?? null
 }

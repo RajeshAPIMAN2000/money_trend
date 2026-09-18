@@ -25,11 +25,32 @@ function statusTone(status) {
   return 'default'
 }
 
+function TableImage({ src, alt }) {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) {
+    return (
+      <div className="w-14 h-14 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 grid place-items-center text-[10px] text-slate-400">
+        No image
+      </div>
+    )
+  }
+  return (
+    <img
+      src={src}
+      alt={alt || 'Image'}
+      className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700 bg-slate-50"
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export default function DataTable({
   columns,
   rows: allRows,
   statusColumn,
   avatarColumn,
+  imageColumn,
   actions,
   searchPlaceholder = 'Search...',
   filters = [],
@@ -114,7 +135,9 @@ export default function DataTable({
                     const val = row[key] ?? row[label]
                     return (
                       <AdminTableCell key={key || label}>
-                        {key === avatarColumn || label === avatarColumn ? (
+                        {key === imageColumn || label === imageColumn ? (
+                          <TableImage src={val} alt={row.title || row.name || 'Image'} />
+                        ) : key === avatarColumn || label === avatarColumn ? (
                           <div className="flex items-center gap-2.5">
                             <AdminAvatar name={row.name || val} size="sm" />
                             <div>

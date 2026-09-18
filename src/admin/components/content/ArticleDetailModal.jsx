@@ -43,9 +43,12 @@ export default function ArticleDetailModal({ open, onClose, item, onEdit, onDele
         </div>
         <dl className="grid sm:grid-cols-2 gap-3 text-sm">
           <DetailItem label="Author" value={item.author} />
-          <DetailItem label="Views" value={String(item.views)} />
+          {/* <DetailItem label="Views" value={String(item.views)} /> */}
           <DetailItem label="Published" value={item.published} />
           <DetailItem label="Status" value={item.status} />
+          {item.category && item.category !== '—' && (
+            <DetailItem label="Category" value={item.category} />
+          )}
         </dl>
         {item.description && (
           <div>

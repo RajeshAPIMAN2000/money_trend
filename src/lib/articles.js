@@ -47,15 +47,15 @@ function getCategoryTone(category) {
 }
 
 function mapArticleItem(item, type = 'blog') {
-  const category = item.category ?? item.cat ?? 'General'
+  const category = item.category ?? item.cat ?? item.category_name ?? 'General'
 
   return {
     id: item.id,
-    title: item.title ?? '',
+    title: item.title ?? item.heading ?? item.name ?? '',
     excerpt: item.excerpt ?? item.summary ?? item.description ?? '',
-    content: item.content ?? item.body ?? item.html_content ?? '',
+    content: item.content ?? item.body ?? item.html_content ?? item.description ?? '',
     category,
-    author: item.author ?? item.author_name ?? item.created_by ?? 'MoneyTrend',
+    author: item.author ?? item.author_name ?? item.created_by_name ?? item.created_by ?? 'MoneyTrend',
     source: item.source ?? item.publisher ?? item.author ?? 'MoneyTrend',
     date: formatDate(item.published_at ?? item.publishedAt ?? item.created_at ?? item.date),
     read: formatReadTime(item),

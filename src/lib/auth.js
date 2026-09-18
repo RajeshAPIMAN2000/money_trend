@@ -87,7 +87,7 @@ export function parseAdminAuthResponse(data) {
         return
       }
       const s = String(val).trim().toLowerCase()
-      if (s) collected.push(s)
+      if (s) collected.push(s === 'blog' ? 'blogs' : s)
     }
 
     push(rawUser.roles)

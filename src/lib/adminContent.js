@@ -33,17 +33,24 @@ function itemKey(type) {
 
 function mapAdminArticleRow(item) {
   const status = item.status ?? item.status_label ?? 'draft'
+  const title = item.title ?? item.heading ?? item.name ?? ''
+  const category = item.category
+    ?? item.category_name
+    ?? item.cat
+    ?? item.type_label
+    ?? null
+
   return {
     id: item.id,
-    title: item.title ?? '',
-    category: item.category ?? '—',
-    author: item.author ?? item.author_name ?? item.created_by ?? '—',
-    views: item.views ?? item.view_count ?? '—',
+    title,
+    category: category && String(category).trim() ? String(category) : '—',
+    author: item.author ?? item.author_name ?? item.created_by_name ?? item.created_by ?? '—',
+    // views: item.views ?? item.view_count ?? '—',
     published: formatDateTime(item.published_at ?? item.created_at ?? item.updated_at),
     status: formatStatus(status),
     statusValue: String(status).toLowerCase(),
     description: item.description ?? item.excerpt ?? item.summary ?? '',
-    content: item.content ?? item.body ?? '',
+    content: item.content ?? item.body ?? item.description ?? '',
     image: resolveMediaUrl(extractImagePath(item)),
     raw: item,
   }
@@ -51,7 +58,8 @@ function mapAdminArticleRow(item) {
 
 function extractItems(root, type) {
   const key = listKey(type)
-  return root[key] ?? root.items ?? root.articles ?? (Array.isArray(root) ? root : [])
+  if (Array.isArray(root)) return root
+  return root[key] ?? root.items ?? root.articles ?? (Array.isArray(root.data) ? root.data : [])
 }
 
 export function parseAdminArticleList(payload, type = 'news') {
@@ -59,19 +67,19 @@ export function parseAdminArticleList(payload, type = 'news') {
   const items = extractItems(root, type).map(mapAdminArticleRow)
   const published = items.filter((item) => item.statusValue === 'published').length
   const drafts = items.filter((item) => item.statusValue === 'draft').length
-  const totalViews = items.reduce((sum, item) => {
-    const views = Number(item.views)
-    return sum + (Number.isNaN(views) ? 0 : views)
-  }, 0)
+  // const totalViews = items.reduce((sum, item) => {
+  //   const views = Number(item.views)
+  //   return sum + (Number.isNaN(views) ? 0 : views)
+  // }, 0)
 
   return {
-    count: root.count ?? items.length,
+    count: root.count ?? root.total ?? items.length,
     items,
     stats: [
       { label: 'Published', value: String(published) },
       { label: 'Drafts', value: String(drafts) },
-      { label: 'Total', value: String(root.count ?? items.length) },
-      { label: 'Total Views', value: totalViews.toLocaleString('en-IN') },
+      { label: 'Total', value: String(root.count ?? root.total ?? items.length) },
+      // { label: 'Total Views', value: totalViews.toLocaleString('en-IN') },
     ],
   }
 }
@@ -84,9 +92,11 @@ export function parseAdminArticleDetail(payload, type = 'news') {
 
 export function buildArticleFormData(fields) {
   const fd = new FormData()
-  fd.append('title', fields.title ?? '')
+  const title = fields.title ?? fields.heading ?? ''
+  fd.append('title', title)
+  fd.append('heading', title)
   fd.append('description', fields.description ?? '')
-  fd.append('content', fields.content ?? '')
+  fd.append('content', fields.content ?? fields.description ?? '')
   fd.append('category', fields.category ?? '')
   fd.append('status', fields.status ?? 'draft')
 
@@ -112,7 +122,7 @@ export const EMPTY_ARTICLE_FORM = {
 export function articleToForm(item) {
   if (!item) return { ...EMPTY_ARTICLE_FORM }
   return {
-    title: item.title ?? '',
+    title: item.title ?? item.heading ?? '',
     description: item.description ?? '',
     content: item.content ?? '',
     category: item.category === '—' ? '' : (item.category ?? ''),

@@ -35,8 +35,7 @@ const secondaryKpiConfig = [
 const shellProps = {
   title: 'Dashboard',
   breadcrumb: ['Home', 'Dashboard'],
-  showExport: true,
-  exportType: 'dashboard',
+  showExport: false,
 }
 
 export default function AdminDashboard() {
@@ -79,7 +78,7 @@ function SuperAdminDashboard() {
     : []
 
   return (
-    <PageShell {...shellProps} dateRangeLabel={data.dateRangeLabel}>
+    <PageShell {...shellProps}>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {mainKpiConfig.map((kpi, i) => {
           const stats = data.mainKpis[kpi.key]
