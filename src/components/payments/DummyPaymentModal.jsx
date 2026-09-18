@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CreditCard, Loader2, Lock, X } from 'lucide-react'
+import { CreditCard, Loader2, Lock, ShieldCheck, X } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import FormInput from '../auth/FormInput.jsx'
+import OtpInput from '../auth/OtpInput.jsx'
 import { usePaymentModal } from '../../context/PaymentModalContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useAuthModal } from '../../context/AuthModalContext.jsx'
@@ -10,10 +11,12 @@ import {
   useCreateDummyPayment,
   useDummyPaymentConfig,
   usePayDummyPayment,
+  useVerifyDummyPaymentOtp,
 } from '../../hooks/useDummyPayment.js'
 import {
   CIBIL_REPORT_FEE,
   DEMO_CARDS_FALLBACK,
+  DEMO_OTP_FALLBACK,
   PAYMENT_PURPOSES,
   formatInr,
   purposeLabel,
@@ -27,6 +30,7 @@ export default function DummyPaymentModal() {
   const configQuery = useDummyPaymentConfig({ enabled: Boolean(session) })
   const createMutation = useCreateDummyPayment()
   const payMutation = usePayDummyPayment()
+  const verifyOtpMutation = useVerifyDummyPaymentOtp()
 
   const [card, setCard] = useState({
     card_number: '',
@@ -35,12 +39,16 @@ export default function DummyPaymentModal() {
     expiry_year: '',
     card_holder: '',
   })
+  const [otp, setOtp] = useState('')
+  const [orderId, setOrderId] = useState(null)
   const [error, setError] = useState('')
-  const [step, setStep] = useState('form') // form | paying | success
+  const [step, setStep] = useState('form') // form | otp | paying | success
 
   const cards = configQuery.data?.cards?.length
     ? configQuery.data.cards
     : DEMO_CARDS_FALLBACK
+  const demoOtp = configQuery.data?.demoOtp || DEMO_OTP_FALLBACK
+  const otpLength = configQuery.data?.otpLength || demoOtp.length || 4
 
   const displayAmount = useMemo(() => {
     if (!session) return 0
@@ -54,6 +62,8 @@ export default function DummyPaymentModal() {
     if (!session) {
       setStep('form')
       setError('')
+      setOtp('')
+      setOrderId(null)
       setCard({
         card_number: '',
         cvv: '',
@@ -84,11 +94,12 @@ export default function DummyPaymentModal() {
   }
 
   const handleClose = () => {
+    if (step === 'paying') return
     session.onCancel?.()
     closePayment()
   }
 
-  const handlePay = async (e) => {
+  const handleCardSubmit = async (e) => {
     e.preventDefault()
     setError('')
     if (!card.card_number || !card.cvv || !card.expiry_month || !card.expiry_year || !card.card_holder) {
@@ -113,13 +124,23 @@ export default function DummyPaymentModal() {
           userMessage: 'Payment order was not created',
         })
       }
-      const paid = await payMutation.mutateAsync({
+      const cardResult = await payMutation.mutateAsync({
         orderId: order.orderId,
         card,
       })
+      setOrderId(order.orderId)
+
+      if (cardResult.otpPending || cardResult.status === 'otp_pending') {
+        setOtp('')
+        setStep('otp')
+        showToast(cardResult.message || `Enter bank OTP ${demoOtp}`)
+        return
+      }
+
+      // Backward compatible: some gateways may still return paid immediately
       setStep('success')
-      showToast(paid.message || 'Payment successful')
-      session.onSuccess?.({ order, paid, amount: displayAmount })
+      showToast(cardResult.message || 'Payment successful')
+      session.onSuccess?.({ order, paid: cardResult, amount: displayAmount })
       window.setTimeout(() => closePayment(), 700)
     } catch (err) {
       setStep('form')
@@ -128,7 +149,43 @@ export default function DummyPaymentModal() {
     }
   }
 
-  const busy = step === 'paying' || createMutation.isPending || payMutation.isPending
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    const cleaned = String(otp || '').replace(/\D/g, '')
+    if (cleaned.length !== otpLength) {
+      setError(`Enter the ${otpLength}-digit bank OTP`)
+      return
+    }
+    if (!orderId) {
+      setError('Payment session expired. Enter card details again.')
+      setStep('form')
+      return
+    }
+
+    setStep('paying')
+    try {
+      const paid = await verifyOtpMutation.mutateAsync({ orderId, otp: cleaned })
+      setStep('success')
+      showToast(paid.message || 'Payment successful')
+      session.onSuccess?.({
+        order: { orderId },
+        paid,
+        amount: displayAmount,
+      })
+      window.setTimeout(() => closePayment(), 700)
+    } catch (err) {
+      setStep('otp')
+      setOtp('')
+      setError(err.userMessage || err.message || 'Invalid OTP')
+      showToast(err.userMessage || 'Invalid OTP')
+    }
+  }
+
+  const busy = step === 'paying'
+    || createMutation.isPending
+    || payMutation.isPending
+    || verifyOtpMutation.isPending
 
   return (
     <div
@@ -142,10 +199,14 @@ export default function DummyPaymentModal() {
         <div className="flex items-start justify-between px-5 pt-5 pb-3 border-b border-slate-100">
           <div>
             <h3 className="font-display font-bold text-lg text-primary">
-              {session.title || purposeLabel(session.purpose)}
+              {step === 'otp'
+                ? 'Bank OTP verification'
+                : (session.title || purposeLabel(session.purpose))}
             </h3>
             <p className="text-sm text-slate-500 mt-0.5">
-              Dummy payment gateway — demo cards only
+              {step === 'otp'
+                ? 'Dummy bank OTP — for demo / bank walkthrough'
+                : 'Dummy payment gateway — demo cards only'}
             </p>
           </div>
           <button
@@ -164,42 +225,11 @@ export default function DummyPaymentModal() {
               <p className="text-xs text-slate-500">Amount payable</p>
               <p className="text-2xl font-display font-bold text-primary">{formatInr(displayAmount)}</p>
             </div>
-            <Lock className="w-5 h-5 text-secondary" />
-          </div>
-
-          {session.purpose === PAYMENT_PURPOSES.CIBIL_REPORT && (
-            <p className="text-xs text-slate-500">
-              Paying unlocks full CIBIL report download for your account.
-            </p>
-          )}
-          {(session.purpose === PAYMENT_PURPOSES.FD_INVEST || session.purpose === PAYMENT_PURPOSES.RD_INVEST) && (
-            <p className="text-xs text-slate-500">
-              {session.meta?.shortfall
-                ? 'This tops up only the wallet shortfall. After payment, your investment is booked from wallet.'
-                : 'Payment credits your wallet, then the investment is booked from wallet balance.'}
-            </p>
-          )}
-          {session.purpose === PAYMENT_PURPOSES.WALLET_DEPOSIT && (
-            <p className="text-xs text-slate-500">
-              Dummy top-up credits your wallet balance.
-            </p>
-          )}
-
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demo cards</p>
-            <div className="flex flex-wrap gap-2">
-              {cards.map((demo) => (
-                <button
-                  key={demo.card_number}
-                  type="button"
-                  disabled={busy}
-                  onClick={() => applyDemoCard(demo)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 hover:border-secondary/40 bg-white"
-                >
-                  {demo.label}
-                </button>
-              ))}
-            </div>
+            {step === 'otp' ? (
+              <ShieldCheck className="w-5 h-5 text-secondary" />
+            ) : (
+              <Lock className="w-5 h-5 text-secondary" />
+            )}
           </div>
 
           {error && (
@@ -212,71 +242,159 @@ export default function DummyPaymentModal() {
             <div className="py-8 text-center text-sm text-emerald-700 font-semibold">
               Payment successful
             </div>
-          ) : (
-            <form onSubmit={handlePay} className="space-y-3">
-              <FormInput
-                label="Card holder"
-                icon={<CreditCard className="w-4 h-4" />}
-                value={card.card_holder}
-                onChange={(e) => setCard((c) => ({ ...c, card_holder: e.target.value }))}
-                disabled={busy}
-              />
-              <FormInput
-                label="Card number"
-                inputMode="numeric"
-                autoComplete="cc-number"
-                value={card.card_number}
-                onChange={(e) => setCard((c) => ({
-                  ...c,
-                  card_number: e.target.value.replace(/[^\d\s]/g, ''),
-                }))}
-                disabled={busy}
-              />
-              <div className="grid grid-cols-3 gap-3">
-                <FormInput
-                  label="MM"
-                  maxLength={2}
-                  value={card.expiry_month}
-                  onChange={(e) => setCard((c) => ({
-                    ...c,
-                    expiry_month: e.target.value.replace(/\D/g, '').slice(0, 2),
-                  }))}
-                  disabled={busy}
-                />
-                <FormInput
-                  label="YY"
-                  maxLength={2}
-                  value={card.expiry_year}
-                  onChange={(e) => setCard((c) => ({
-                    ...c,
-                    expiry_year: e.target.value.replace(/\D/g, '').slice(0, 2),
-                  }))}
-                  disabled={busy}
-                />
-                <FormInput
-                  label="CVV"
-                  maxLength={4}
-                  type="password"
-                  autoComplete="cc-csc"
-                  value={card.cvv}
-                  onChange={(e) => setCard((c) => ({
-                    ...c,
-                    cvv: e.target.value.replace(/\D/g, '').slice(0, 4),
-                  }))}
+          ) : step === 'otp' || (step === 'paying' && orderId) ? (
+            <form onSubmit={handleOtpSubmit} className="space-y-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-slate-700">
+                <p className="font-semibold text-primary">OTP sent to your registered mobile</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Demo bank OTP is{' '}
+                  <span className="font-mono font-bold text-secondary tracking-widest">{demoOtp}</span>
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-slate-500 mb-3 text-center">
+                  Enter {otpLength}-digit OTP
+                </p>
+                <OtpInput
+                  length={otpLength}
+                  value={otp}
+                  onChange={setOtp}
                   disabled={busy}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={busy}>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || otp.replace(/\D/g, '').length !== otpLength}
+              >
                 {busy ? (
                   <span className="inline-flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing…
+                    Verifying OTP…
                   </span>
                 ) : (
-                  `Pay ${formatInr(displayAmount)}`
+                  'Verify & Pay'
                 )}
               </Button>
+
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setStep('form')
+                  setOtp('')
+                  setOrderId(null)
+                  setError('')
+                }}
+                className="w-full text-sm text-slate-500 hover:text-primary"
+              >
+                Back to card details
+              </button>
             </form>
+          ) : (
+            <>
+              {session.purpose === PAYMENT_PURPOSES.CIBIL_REPORT && (
+                <p className="text-xs text-slate-500">
+                  Paying unlocks full CIBIL report download for your account.
+                </p>
+              )}
+              {(session.purpose === PAYMENT_PURPOSES.FD_INVEST || session.purpose === PAYMENT_PURPOSES.RD_INVEST) && (
+                <p className="text-xs text-slate-500">
+                  {session.meta?.shortfall
+                    ? 'This tops up only the wallet shortfall. After payment, your investment is booked from wallet.'
+                    : 'Payment credits your wallet, then the investment is booked from wallet balance.'}
+                </p>
+              )}
+              {session.purpose === PAYMENT_PURPOSES.WALLET_DEPOSIT && (
+                <p className="text-xs text-slate-500">
+                  Dummy top-up credits your wallet balance.
+                </p>
+              )}
+
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demo cards</p>
+                <div className="flex flex-wrap gap-2">
+                  {cards.map((demo) => (
+                    <button
+                      key={demo.card_number}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => applyDemoCard(demo)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 hover:border-secondary/40 bg-white"
+                    >
+                      {demo.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <form onSubmit={handleCardSubmit} className="space-y-3">
+                <FormInput
+                  label="Card holder"
+                  icon={<CreditCard className="w-4 h-4" />}
+                  value={card.card_holder}
+                  onChange={(e) => setCard((c) => ({ ...c, card_holder: e.target.value }))}
+                  disabled={busy}
+                />
+                <FormInput
+                  label="Card number"
+                  inputMode="numeric"
+                  autoComplete="cc-number"
+                  value={card.card_number}
+                  onChange={(e) => setCard((c) => ({
+                    ...c,
+                    card_number: e.target.value.replace(/[^\d\s]/g, ''),
+                  }))}
+                  disabled={busy}
+                />
+                <div className="grid grid-cols-3 gap-3">
+                  <FormInput
+                    label="MM"
+                    maxLength={2}
+                    value={card.expiry_month}
+                    onChange={(e) => setCard((c) => ({
+                      ...c,
+                      expiry_month: e.target.value.replace(/\D/g, '').slice(0, 2),
+                    }))}
+                    disabled={busy}
+                  />
+                  <FormInput
+                    label="YY"
+                    maxLength={2}
+                    value={card.expiry_year}
+                    onChange={(e) => setCard((c) => ({
+                      ...c,
+                      expiry_year: e.target.value.replace(/\D/g, '').slice(0, 2),
+                    }))}
+                    disabled={busy}
+                  />
+                  <FormInput
+                    label="CVV"
+                    maxLength={4}
+                    type="password"
+                    autoComplete="cc-csc"
+                    value={card.cvv}
+                    onChange={(e) => setCard((c) => ({
+                      ...c,
+                      cvv: e.target.value.replace(/\D/g, '').slice(0, 4),
+                    }))}
+                    disabled={busy}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {busy ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing…
+                    </span>
+                  ) : (
+                    `Continue · ${formatInr(displayAmount)}`
+                  )}
+                </Button>
+              </form>
+            </>
           )}
         </div>
       </div>

@@ -10,6 +10,7 @@ export const PAYMENT_PURPOSES = {
 }
 
 export const CIBIL_REPORT_FEE = 99
+export const DEMO_OTP_FALLBACK = '1234'
 
 export const DEMO_CARDS_FALLBACK = [
   {
@@ -40,19 +41,36 @@ export function parseDummyPaymentConfig(payload) {
     ? root.cards
     : (Array.isArray(root.demo_cards) ? root.demo_cards : DEMO_CARDS_FALLBACK)
   const fees = root.fees ?? root.fee ?? {}
+  const otpInfo = root.otp && typeof root.otp === 'object' ? root.otp : {}
+  const demoOtp = String(
+    root.demo_otp
+    ?? root.demoOtp
+    ?? otpInfo.demo_otp
+    ?? otpInfo.code
+    ?? DEMO_OTP_FALLBACK,
+  )
   return {
     cards: cards.map((c, i) => ({
       label: c.label || c.name || `Demo card ${i + 1}`,
       card_number: String(c.card_number || c.number || ''),
       cvv: String(c.cvv || '123'),
-      expiry_month: String(c.expiry_month || c.month || '12'),
-      expiry_year: String(c.expiry_year || c.year || '30'),
+      expiry_month: String(c.expiry_month || c.month || (String(c.expiry || '').split('/')[0] || '12')),
+      expiry_year: String(c.expiry_year || c.year || (String(c.expiry || '').split('/')[1] || '30')),
       card_holder: c.card_holder || c.holder || 'Demo User',
     })),
     fees: {
       cibil_report: Number(fees.cibil_report ?? fees.cibilReport ?? CIBIL_REPORT_FEE),
     },
-    message: root.message ?? payload?.message ?? null,
+    demoOtp,
+    otpLength: Number(
+      root.otp_length
+      ?? otpInfo.otp_length
+      ?? otpInfo.length
+      ?? demoOtp.length
+      ?? 4,
+    ),
+    otpRequired: Boolean(otpInfo.otp_required ?? true),
+    message: root.message ?? payload?.message ?? otpInfo.otp_hint ?? null,
   }
 }
 
@@ -72,14 +90,29 @@ export function parseDummyOrder(payload) {
 
 export function parseDummyPayResult(payload) {
   const root = unwrap(payload)
+  const status = String(root.status ?? 'paid').toLowerCase()
+  const otpInfo = root.otp && typeof root.otp === 'object' ? root.otp : {}
   return {
     success: payload?.success !== false,
     orderId: root.order_id ?? root.orderId ?? null,
-    status: String(root.status ?? 'paid').toLowerCase(),
+    status,
+    otpPending: status === 'otp_pending' || Boolean(root.next_step?.includes?.('OTP') || root.next_step?.includes?.('otp')),
     amount: Number(root.amount ?? 0),
     walletCredited: Boolean(root.wallet_credited ?? root.walletCredited),
     cibilUnlocked: Boolean(root.cibil_unlocked ?? root.cibilUnlocked ?? root.unlocked),
-    message: payload?.message ?? root.message ?? 'Payment successful',
+    demoOtp: String(otpInfo.demo_otp ?? otpInfo.code ?? root.demo_otp ?? DEMO_OTP_FALLBACK),
+    otpLength: Number(otpInfo.otp_length ?? otpInfo.length ?? root.otp_length ?? 4),
+    message: payload?.message ?? root.message ?? (status === 'otp_pending'
+      ? 'Enter the bank OTP to complete payment'
+      : 'Payment successful'),
+    card: root.card ?? null,
+  }
+}
+
+export function buildVerifyOtpBody(orderId, otp) {
+  return {
+    order_id: orderId,
+    otp: String(otp || '').replace(/\D/g, ''),
   }
 }
 

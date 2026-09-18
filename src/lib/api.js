@@ -457,6 +457,8 @@ export const api = {
     request('/payments/dummy/create', { method: 'POST', body }),
   payDummyPayment: (body) =>
     request('/payments/dummy/pay', { method: 'POST', body }),
+  verifyDummyPaymentOtp: (body) =>
+    request('/payments/dummy/verify-otp', { method: 'POST', body }),
   getDummyCibilUnlock: () => request('/payments/dummy/cibil-unlock'),
   getDummyPaymentOrder: (orderId) =>
     request(`/payments/dummy/${encodeURIComponent(orderId)}`),

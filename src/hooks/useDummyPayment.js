@@ -9,8 +9,10 @@ import {
   parsePaymentRequiredError,
   buildCreatePaymentBody,
   buildPayBody,
+  buildVerifyOtpBody,
   mapPaymentError,
   DEMO_CARDS_FALLBACK,
+  DEMO_OTP_FALLBACK,
   CIBIL_REPORT_FEE,
 } from '../lib/dummyPayment.js'
 
@@ -29,6 +31,8 @@ export function useDummyPaymentConfig({ enabled = true } = {}) {
         return {
           cards: DEMO_CARDS_FALLBACK,
           fees: { cibil_report: CIBIL_REPORT_FEE },
+          demoOtp: DEMO_OTP_FALLBACK,
+          otpLength: 4,
           message: null,
         }
       }
@@ -69,11 +73,25 @@ export function useCreateDummyPayment() {
 }
 
 export function usePayDummyPayment() {
-  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ orderId, card }) => {
       try {
         return parseDummyPayResult(await api.payDummyPayment(buildPayBody(orderId, card)))
+      } catch (err) {
+        throw attachPayError(err)
+      }
+    },
+  })
+}
+
+export function useVerifyDummyPaymentOtp() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ orderId, otp }) => {
+      try {
+        return parseDummyPayResult(
+          await api.verifyDummyPaymentOtp(buildVerifyOtpBody(orderId, otp)),
+        )
       } catch (err) {
         throw attachPayError(err)
       }
@@ -88,8 +106,8 @@ export function usePayDummyPayment() {
   })
 }
 
-/** Full flow: create order → pay with card */
-export async function runDummyCheckout({ purpose, amount, description, meta, card }) {
+/** Full flow: create order → pay with card → verify OTP */
+export async function runDummyCheckout({ purpose, amount, description, meta, card, otp = DEMO_OTP_FALLBACK }) {
   const order = parseDummyOrder(
     await api.createDummyPayment(buildCreatePaymentBody({ purpose, amount, description, meta })),
   )
@@ -98,10 +116,16 @@ export async function runDummyCheckout({ purpose, amount, description, meta, car
     err.userMessage = 'Payment order was not created'
     throw err
   }
-  const paid = parseDummyPayResult(
+  const cardResult = parseDummyPayResult(
     await api.payDummyPayment(buildPayBody(order.orderId, card)),
   )
-  return { order, paid }
+  if (cardResult.otpPending || cardResult.status === 'otp_pending') {
+    const paid = parseDummyPayResult(
+      await api.verifyDummyPaymentOtp(buildVerifyOtpBody(order.orderId, otp)),
+    )
+    return { order, paid, cardResult }
+  }
+  return { order, paid: cardResult }
 }
 
 export function useWallet({ enabled = true } = {}) {
