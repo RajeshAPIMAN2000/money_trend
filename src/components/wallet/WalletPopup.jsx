@@ -33,11 +33,11 @@ import Badge from '../ui/Badge.jsx'
 import { cn } from '../../lib/utils.js'
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: Wallet },
-  { id: 'add', label: 'Add Money', icon: Plus },
-  { id: 'withdraw', label: 'Withdraw', icon: Banknote },
-  { id: 'transactions', label: 'History', icon: History },
-  { id: 'portfolio', label: 'Portfolio', icon: PieChart },
+  { id: 'overview', label: 'Overview', shortLabel: 'Home', icon: Wallet },
+  { id: 'add', label: 'Add Money', shortLabel: 'Add', icon: Plus },
+  { id: 'withdraw', label: 'Withdraw', shortLabel: 'Cash', icon: Banknote },
+  { id: 'transactions', label: 'History', shortLabel: 'History', icon: History },
+  { id: 'portfolio', label: 'Portfolio', shortLabel: 'Holdings', icon: PieChart },
 ]
 
 const EMPTY_BANK = {
@@ -60,18 +60,20 @@ function OverviewTab({ wallet }) {
   ]
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl bg-gradient-to-br from-primary to-secondary text-white p-5">
-        <p className="text-xs text-white/70 uppercase tracking-wide">Wallet Balance</p>
-        <p className="text-3xl font-display font-bold mt-1 tabular-nums">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="rounded-2xl bg-gradient-to-br from-primary to-secondary text-white p-4 sm:p-5">
+        <p className="text-[10px] sm:text-xs text-white/70 uppercase tracking-wide">Wallet Balance</p>
+        <p className="text-2xl sm:text-3xl font-display font-bold mt-1 tabular-nums break-all">
           {wallet.availableBalanceDisplay}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <p className="text-[11px] text-slate-500">{c.label}</p>
-            <p className="font-semibold text-primary tabular-nums mt-0.5">{c.value}</p>
+          <div key={c.label} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 sm:p-3 min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-slate-500">{c.label}</p>
+            <p className="font-semibold text-primary tabular-nums mt-0.5 text-sm sm:text-base truncate">
+              {c.value}
+            </p>
           </div>
         ))}
       </div>
@@ -130,7 +132,7 @@ function AddMoneyTab({ presets, onSuccess }) {
               type="button"
               onClick={() => { setAmount(p); setCustom(''); setError(''); setSuccess('') }}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors',
+                'px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition-colors',
                 custom === '' && amount === p
                   ? 'bg-secondary text-white border-secondary'
                   : 'bg-white text-ink border-slate-200 hover:border-secondary/40',
@@ -172,8 +174,11 @@ function AddMoneyTab({ presets, onSuccess }) {
         </div>
       )}
 
-      <Button className="w-full" onClick={handlePay}>
-        Continue to Card Payment · {formatInr(clampAddAmount(selected || MIN_ADD))}
+      <Button className="w-full text-sm sm:text-base" onClick={handlePay}>
+        <span className="sm:hidden">Pay · {formatInr(clampAddAmount(selected || MIN_ADD))}</span>
+        <span className="hidden sm:inline">
+          Continue to Card Payment · {formatInr(clampAddAmount(selected || MIN_ADD))}
+        </span>
       </Button>
     </div>
   )
@@ -562,18 +567,18 @@ function PortfolioTab({ enabled }) {
                 </div>
                 <Badge tone="green">{item.status}</Badge>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-[11px]">
-                <div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                <div className="min-w-0">
                   <p className="text-slate-500">Invested</p>
-                  <p className="font-semibold tabular-nums">{item.principalDisplay}</p>
+                  <p className="font-semibold tabular-nums truncate">{item.principalDisplay}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-slate-500">Interest / Profit</p>
-                  <p className="font-semibold text-accent tabular-nums">{item.profitDisplay}</p>
+                  <p className="font-semibold text-accent tabular-nums truncate">{item.profitDisplay}</p>
                 </div>
-                <div>
+                <div className="min-w-0 col-span-2 sm:col-span-1">
                   <p className="text-slate-500">Maturity</p>
-                  <p className="font-semibold tabular-nums">{item.maturityDisplay}</p>
+                  <p className="font-semibold tabular-nums truncate">{item.maturityDisplay}</p>
                 </div>
               </div>
               {item.canCancel && (
@@ -592,34 +597,34 @@ function PortfolioTab({ enabled }) {
       )}
 
       {confirmItem && (
-        <div className="fixed inset-0 z-[70] grid place-items-center bg-primary/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-lift w-full max-w-sm p-5 space-y-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-primary/40 backdrop-blur-sm p-3 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-lift w-full max-w-sm p-4 sm:p-5 space-y-4">
             <h4 className="font-display font-bold text-primary">Cancel Order?</h4>
             <p className="text-sm text-slate-600">
               Cancelling <strong>{confirmItem.product}</strong> will withdraw the invested amount
               along with interest / profit back to your wallet.
             </p>
             <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-sm space-y-1.5">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <span className="text-slate-500">Principal</span>
                 <span className="font-semibold tabular-nums">{confirmItem.principalDisplay}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-2">
                 <span className="text-slate-500">Interest / Profit</span>
                 <span className="font-semibold text-accent tabular-nums">{confirmItem.profitDisplay}</span>
               </div>
-              <div className="flex justify-between border-t border-slate-200 pt-1.5">
+              <div className="flex justify-between gap-2 border-t border-slate-200 pt-1.5">
                 <span className="font-medium">Total withdraw</span>
                 <span className="font-bold tabular-nums">{confirmItem.maturityDisplay}</span>
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setConfirmItem(null)}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setConfirmItem(null)}>
                 Keep
               </Button>
               <Button
                 size="sm"
-                className="bg-red-600 hover:bg-red-700"
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
                 disabled={cancelMutation.isPending}
                 onClick={handleCancel}
               >
@@ -652,20 +657,23 @@ export default function WalletPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[55] grid place-items-center bg-primary/40 backdrop-blur-sm p-4 animate-fade-in"
+      className="fixed inset-0 z-[55] flex items-center justify-center bg-primary/40 backdrop-blur-sm p-3 sm:p-4 animate-fade-in"
       onClick={closeWallet}
     >
       <div
-        className="bg-white rounded-card shadow-lift w-full max-w-lg max-h-[90vh] flex flex-col animate-scale-in"
+        className={cn(
+          'bg-white shadow-lift w-full flex flex-col animate-scale-in rounded-card',
+          'max-h-[90dvh] sm:max-h-[90vh] max-w-lg',
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
-          <div>
-            <h3 className="font-display font-bold text-lg text-primary flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-secondary" />
+        <div className="flex items-center justify-between gap-3 px-4 py-3 sm:p-5 border-b border-slate-100 shrink-0">
+          <div className="min-w-0">
+            <h3 className="font-display font-bold text-base sm:text-lg text-primary flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-secondary shrink-0" />
               Wallet
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
               {wallet?.availableBalanceDisplay
                 ? `Balance ${wallet.availableBalanceDisplay}`
                 : 'Your wallet'}
@@ -674,33 +682,38 @@ export default function WalletPopup() {
           <button
             type="button"
             onClick={closeWallet}
-            className="w-8 h-8 grid place-items-center rounded-full hover:bg-slate-100"
+            className="w-9 h-9 sm:w-8 sm:h-8 grid place-items-center rounded-full hover:bg-slate-100 shrink-0"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex gap-1 px-3 pt-3 border-b border-slate-100 shrink-0 overflow-x-auto">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-t-lg whitespace-nowrap transition-colors',
-                tab === id
-                  ? 'text-secondary bg-secondary/5 border-b-2 border-secondary'
-                  : 'text-slate-500 hover:text-primary',
-              )}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          ))}
+        <div className="shrink-0 border-b border-slate-100 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+          <div className="flex min-w-full gap-0.5 px-2 sm:px-3 pt-2">
+            {TABS.map(({ id, label, shortLabel, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={cn(
+                  'flex flex-1 flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5',
+                  'px-1.5 sm:px-3 py-2.5 sm:py-2 text-[10px] sm:text-xs font-semibold rounded-t-lg',
+                  'whitespace-nowrap transition-colors',
+                  tab === id
+                    ? 'text-secondary bg-secondary/5 border-b-2 border-secondary'
+                    : 'text-slate-500 hover:text-primary',
+                )}
+              >
+                <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0" />
+                <span className="leading-tight sm:hidden">{shortLabel}</span>
+                <span className="leading-tight hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="p-5 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-5 overflow-y-auto flex-1 overscroll-contain">
           {tab === 'overview' && <OverviewTab wallet={wallet} />}
           {tab === 'add' && (
             <AddMoneyTab
