@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { AuthModalProvider } from './context/AuthModalContext.jsx'
 import { CibilCheckProvider } from './context/CibilCheckContext.jsx'
 import { PaymentModalProvider } from './context/PaymentModalContext.jsx'
+import { WalletModalProvider } from './context/WalletModalContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
 import App from './App.jsx'
 import './index.css'
@@ -28,9 +29,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthModalProvider>
             <CibilCheckProvider>
               <PaymentModalProvider>
-                <ToastProvider>
-                  <App />
-                </ToastProvider>
+                <WalletModalProvider>
+                  <ToastProvider>
+                    <App />
+                  </ToastProvider>
+                </WalletModalProvider>
               </PaymentModalProvider>
             </CibilCheckProvider>
           </AuthModalProvider>

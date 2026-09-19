@@ -26,6 +26,7 @@ export function invalidateMoneyQueries(queryClient) {
   if (!queryClient) return Promise.resolve()
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ['wallet'] }),
+    queryClient.invalidateQueries({ queryKey: ['demo'] }),
     queryClient.invalidateQueries({ queryKey: ['profile', 'portfolio'] }),
     queryClient.invalidateQueries({ queryKey: ['payments'] }),
     queryClient.invalidateQueries({ queryKey: ['fd'] }),
@@ -148,11 +149,43 @@ export function useWallet({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['wallet', 'balance'],
     queryFn: async () => {
+      // Prefer demo wallet when available (virtual funds)
+      try {
+        const demo = await api.getDemoWallet()
+        const data = demo?.data ?? demo
+        if (data && (data.available_balance != null || data.demo_mode || data.label)) {
+          return {
+            balance: Number(data.available_balance ?? data.balance ?? 0),
+            currency: data.currency ?? 'INR',
+            demoMode: true,
+            label: data.label ?? null,
+            demoNotice: data.demo_notice ?? null,
+            raw: data,
+          }
+        }
+      } catch {
+        // fall through to /wallet
+      }
+
       const res = await api.getWallet()
       const data = res?.data ?? res
+      const demoNested = data?.demo_wallet
+      if (demoNested && typeof demoNested === 'object') {
+        return {
+          balance: Number(demoNested.available_balance ?? demoNested.balance ?? data.balance ?? 0),
+          currency: demoNested.currency ?? data.currency ?? 'INR',
+          demoMode: true,
+          label: demoNested.label ?? null,
+          demoNotice: demoNested.demo_notice ?? null,
+          raw: { ...data, ...demoNested },
+        }
+      }
       return {
         balance: Number(data.balance ?? data.wallet_balance ?? data.available_balance ?? 0),
         currency: data.currency ?? 'INR',
+        demoMode: Boolean(data.demo_mode),
+        label: data.label ?? null,
+        demoNotice: data.demo_notice ?? null,
         raw: data,
       }
     },

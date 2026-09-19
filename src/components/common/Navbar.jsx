@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { LayoutDashboard, LogOut, Phone, User, Wallet } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useAuthModal } from '../../context/AuthModalContext.jsx'
+import { useWalletModal } from '../../context/WalletModalContext.jsx'
 import { useWallet } from '../../hooks/useDummyPayment.js'
 import { formatInr } from '../../lib/dummyPayment.js'
 import { initialsFromName } from '../../lib/userProfile.js'
@@ -30,6 +31,7 @@ const AUTH_NAV_LINKS = [
 
 function UserMenu({ onNavigate, className }) {
   const { user, logout } = useAuth()
+  const { openWallet } = useWalletModal()
   const { data: wallet } = useWallet({ enabled: true })
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -85,6 +87,14 @@ function UserMenu({ onNavigate, className }) {
               <LayoutDashboard className="w-4 h-4 text-slate-400" />
               Portfolio
             </Link>
+            <button
+              type="button"
+              onClick={() => { openWallet({ tab: 'overview' }); close() }}
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-slate-50"
+            >
+              <Wallet className="w-4 h-4 text-slate-400" />
+              Wallet
+            </button>
             <hr className="my-1 border-slate-100" />
             <button
               type="button"
@@ -98,9 +108,12 @@ function UserMenu({ onNavigate, className }) {
         )}
       </div>
 
-      <Link
-        to="/dashboard"
-        onClick={onNavigate}
+      <button
+        type="button"
+        onClick={() => {
+          openWallet({ tab: 'overview' })
+          onNavigate?.()
+        }}
         className="flex items-center gap-2 h-10 pl-2.5 pr-3 rounded-xl text-ink hover:text-secondary hover:bg-slate-100 transition-colors"
         aria-label={`Wallet balance ${formatInr(walletBalance)}`}
         title="Wallet"
@@ -109,7 +122,7 @@ function UserMenu({ onNavigate, className }) {
         <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
           {formatInr(walletBalance)}
         </span>
-      </Link>
+      </button>
     </div>
   )
 }

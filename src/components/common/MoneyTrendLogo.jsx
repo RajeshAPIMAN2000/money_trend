@@ -5,7 +5,7 @@ export const LOGO_SRC = logoImg
 
 const variants = {
   /** Navbar — full logo scaled to header height with breathing room */
-  navbar: 'block h-9 sm:h-10 w-auto max-w-[9rem] sm:max-w-[10.5rem] object-contain object-left shrink-0',
+  navbar: 'block h-12 sm:h-14 w-auto max-w-[12rem] sm:max-w-[14rem] object-contain object-left shrink-0',
   /** Footer — larger crop, gold coin visible on dark background */
   footer: 'block h-16 sm:h-20 w-[11rem] sm:w-[12.5rem] object-cover object-[center_20%] shrink-0',
   /** Full logo for auth modals */

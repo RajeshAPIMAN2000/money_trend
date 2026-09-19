@@ -494,6 +494,45 @@ export const api = {
     request('/wallet/withdraw', { method: 'POST', body }),
   getWalletTaxReport: () => request('/wallet/tax-report'),
 
+  // Demo wallet / investments (virtual funds)
+  getDemoConfig: () => request('/demo/config', { skipAuth: true }),
+  getDemoWallet: () => request('/demo/wallet'),
+  getDemoWalletTransactions: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/demo/wallet/transactions${q ? `?${q}` : ''}`)
+  },
+  addDemoMoney: (body) =>
+    request('/demo/wallet/add-money', { method: 'POST', body }),
+  getDemoProducts: () => request('/demo/products', { skipAuth: true }),
+  estimateDemoFd: (body) =>
+    request('/demo/fd/estimate', { method: 'POST', body }),
+  estimateDemoRd: (body) =>
+    request('/demo/rd/estimate', { method: 'POST', body }),
+  createDemoFd: (body) =>
+    request('/demo/fd', { method: 'POST', body }),
+  createDemoRd: (body) =>
+    request('/demo/rd', { method: 'POST', body }),
+  getDemoInvestments: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/demo/investments${q ? `?${q}` : ''}`)
+  },
+  getDemoInvestment: (type, id) =>
+    request(`/demo/investments/${encodeURIComponent(type)}/${encodeURIComponent(id)}`),
+  /** Cancel / break demo investment — returns principal + interest to wallet */
+  cancelDemoInvestment: (type, id) =>
+    request(`/demo/investments/${encodeURIComponent(type)}/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+      body: {},
+    }),
+  breakDemoInvestment: (type, id) =>
+    request(`/demo/investments/${encodeURIComponent(type)}/${encodeURIComponent(id)}/break`, {
+      method: 'POST',
+      body: {},
+    }),
+  createDemoWithdrawal: (body) =>
+    request('/demo/withdrawals', { method: 'POST', body }),
+  getDemoWithdrawals: () => request('/demo/withdrawals'),
+
   // FD investments (wallet-funded after dummy pay)
   createFd: (body) => request('/fd/', { method: 'POST', body }),
   getFds: () => request('/fd/'),

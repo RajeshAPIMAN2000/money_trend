@@ -28,6 +28,7 @@ import AuthModalRedirect from './components/auth/AuthModalRedirect.jsx'
 import AuthModal from './components/auth/AuthModal.jsx'
 import CibilCheckModal from './components/cibil/CibilCheckModal.jsx'
 import DummyPaymentModal from './components/payments/DummyPaymentModal.jsx'
+import WalletPopup from './components/wallet/WalletPopup.jsx'
 import { RequireAuth as UserRequireAuth } from './components/auth/ProtectedRoute.jsx'
 import AdminRoot from './admin/AdminRoot.jsx'
 import AdminLayout from './admin/layout/AdminLayout.jsx'
@@ -114,6 +115,7 @@ export default function App() {
       <AuthModal />
       <CibilCheckModal />
       <DummyPaymentModal />
+      <WalletPopup />
       <Routes>
       {/* Legacy auth URLs → handled by AuthModalRedirect in PublicApp */}
       <Route path="/login" element={<Navigate to="/?auth=login" replace />} />
