@@ -10,10 +10,25 @@ function blogsQueryKey(suffix = []) {
   return ['admin', 'blogs', ...suffix]
 }
 
+async function refreshAdminArticles(queryClient, type, id) {
+  const key = type === 'blog' ? blogsQueryKey() : newsQueryKey()
+  await queryClient.invalidateQueries({ queryKey: key })
+  await queryClient.refetchQueries({ queryKey: key, type: 'active' })
+  if (id != null) {
+    await queryClient.invalidateQueries({
+      queryKey: type === 'blog' ? blogsQueryKey([id]) : newsQueryKey([id]),
+    })
+  }
+  // Public site lists/details
+  await queryClient.invalidateQueries({ queryKey: ['articles'] })
+}
+
 export function useAdminNews(params = {}) {
   return useQuery({
     queryKey: newsQueryKey(['list', params]),
     queryFn: async () => parseAdminArticleList(await api.getAdminNews(params), 'news'),
+    refetchOnMount: 'always',
+    staleTime: 0,
   })
 }
 
@@ -22,27 +37,32 @@ export function useAdminNewsItem(id) {
     queryKey: newsQueryKey([id]),
     queryFn: async () => parseAdminArticleDetail(await api.getAdminNewsItem(id), 'news'),
     enabled: Boolean(id),
+    staleTime: 0,
   })
 }
 
 export function useAdminNewsMutations() {
   const queryClient = useQueryClient()
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: newsQueryKey() })
-
   const create = useMutation({
     mutationFn: (formData) => api.createAdminNews(formData),
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await refreshAdminArticles(queryClient, 'news')
+    },
   })
 
   const update = useMutation({
     mutationFn: ({ id, formData }) => api.updateAdminNews(id, formData),
-    onSuccess: invalidate,
+    onSuccess: async (_data, vars) => {
+      await refreshAdminArticles(queryClient, 'news', vars?.id)
+    },
   })
 
   const remove = useMutation({
     mutationFn: (id) => api.deleteAdminNews(id),
-    onSuccess: invalidate,
+    onSuccess: async (_data, id) => {
+      await refreshAdminArticles(queryClient, 'news', id)
+    },
   })
 
   return { create, update, remove }
@@ -52,6 +72,8 @@ export function useAdminBlogs(params = {}) {
   return useQuery({
     queryKey: blogsQueryKey(['list', params]),
     queryFn: async () => parseAdminArticleList(await api.getAdminBlogs(params), 'blog'),
+    refetchOnMount: 'always',
+    staleTime: 0,
   })
 }
 
@@ -60,27 +82,32 @@ export function useAdminBlog(id) {
     queryKey: blogsQueryKey([id]),
     queryFn: async () => parseAdminArticleDetail(await api.getAdminBlog(id), 'blog'),
     enabled: Boolean(id),
+    staleTime: 0,
   })
 }
 
 export function useAdminBlogMutations() {
   const queryClient = useQueryClient()
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: blogsQueryKey() })
-
   const create = useMutation({
     mutationFn: (formData) => api.createAdminBlog(formData),
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await refreshAdminArticles(queryClient, 'blog')
+    },
   })
 
   const update = useMutation({
     mutationFn: ({ id, formData }) => api.updateAdminBlog(id, formData),
-    onSuccess: invalidate,
+    onSuccess: async (_data, vars) => {
+      await refreshAdminArticles(queryClient, 'blog', vars?.id)
+    },
   })
 
   const remove = useMutation({
     mutationFn: (id) => api.deleteAdminBlog(id),
-    onSuccess: invalidate,
+    onSuccess: async (_data, id) => {
+      await refreshAdminArticles(queryClient, 'blog', id)
+    },
   })
 
   return { create, update, remove }

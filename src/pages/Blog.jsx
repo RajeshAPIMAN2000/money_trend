@@ -53,13 +53,28 @@ export default function Blog() {
             <div className="lg:col-span-2 grid sm:grid-cols-2 gap-5">
               {filtered.map((p) => (
                 <Link to={`/blog/${p.id}`} key={p.id}>
-                  <Card>
-                    <span className={`inline-block text-xs font-semibold text-white px-2.5 py-1 rounded-full ${p.color}`}>{p.category}</span>
-                    <h3 className="font-display font-bold text-primary mt-3 text-lg leading-snug">{p.title}</h3>
-                    <p className="text-sm text-slate-600 mt-2 line-clamp-2">{p.excerpt}</p>
-                    <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
-                      <span>{p.author}</span>
-                      <span>{p.date}{p.read ? ` · ${p.read}` : ''}</span>
+                  <Card className="overflow-hidden p-0">
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.title}
+                        className="w-full h-40 object-cover bg-slate-100"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-40 bg-slate-100 grid place-items-center text-xs text-slate-400">
+                        No image
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <span className={`inline-block text-xs font-semibold text-white px-2.5 py-1 rounded-full ${p.color}`}>{p.category}</span>
+                      <h3 className="font-display font-bold text-primary mt-3 text-lg leading-snug">{p.title}</h3>
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{p.excerpt}</p>
+                      <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
+                        <span>{p.author}</span>
+                        <span>{p.date}{p.read ? ` · ${p.read}` : ''}</span>
+                      </div>
+                      <span className="inline-block mt-3 text-sm font-semibold text-secondary">Read more →</span>
                     </div>
                   </Card>
                 </Link>

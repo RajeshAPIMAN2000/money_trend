@@ -1,4 +1,4 @@
-import { resolveMediaUrl, extractImagePath } from './media.js'
+import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
 
 const unwrap = (payload) => payload?.data ?? payload ?? {}
 
@@ -39,19 +39,21 @@ function mapAdminArticleRow(item) {
     ?? item.cat
     ?? item.type_label
     ?? null
+  const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
 
   return {
     id: item.id,
     title,
     category: category && String(category).trim() ? String(category) : '—',
-    author: item.author ?? item.author_name ?? item.created_by_name ?? item.created_by ?? '—',
+    author: extractAuthorName(item, 'MoneyTrend'),
     // views: item.views ?? item.view_count ?? '—',
     published: formatDateTime(item.published_at ?? item.created_at ?? item.updated_at),
     status: formatStatus(status),
     statusValue: String(status).toLowerCase(),
     description: item.description ?? item.excerpt ?? item.summary ?? '',
     content: item.content ?? item.body ?? item.description ?? '',
-    image: resolveMediaUrl(extractImagePath(item)),
+    image: resolveMediaUrl(extractImagePath(item), { cacheKey: updatedAt }),
+    updatedAt,
     raw: item,
   }
 }

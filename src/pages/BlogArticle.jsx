@@ -47,27 +47,39 @@ export default function BlogArticle() {
       <PageSideLayout className="!max-w-5xl">
         <article className="max-w-3xl">
           <Link to="/blog" className="text-sm text-secondary font-semibold hover:underline">← Back to Blog</Link>
-          <Badge tone="blue" className="mt-4">{article.category}</Badge>
-          <h1 className="text-3xl md:text-4xl font-display font-bold text-primary mt-3 leading-tight">{article.title}</h1>
 
-          <div className="flex items-center gap-3 mt-5 pb-5 border-b border-slate-200">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-secondary to-accent grid place-items-center text-white font-semibold">
-              {authorInitials(article.author)}
+          {/* Image first, then article data below */}
+          {article.image ? (
+            <img
+              src={article.image}
+              alt={article.title}
+              className="w-full rounded-card mt-6 object-cover max-h-[28rem] bg-slate-100"
+            />
+          ) : (
+            <div className="w-full h-56 rounded-card mt-6 bg-slate-100 grid place-items-center text-sm text-slate-400">
+              No image
             </div>
-            <div className="text-sm">
-              <div className="font-semibold text-primary">{article.author}</div>
-              <div className="text-slate-500 text-xs">
-                {article.date}{article.read ? ` · ${article.read} read` : ''}
-              </div>
-            </div>
-          </div>
-
-          {article.image && (
-            <img src={article.image} alt={article.title} className="w-full rounded-card mt-6 object-cover max-h-96" />
           )}
 
-          <div className="mt-8">
-            <ArticleBody content={article.content} excerpt={article.excerpt} />
+          <div className="mt-6">
+            <Badge tone="blue">{article.category}</Badge>
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-primary mt-3 leading-tight">{article.title}</h1>
+
+            <div className="flex items-center gap-3 mt-5 pb-5 border-b border-slate-200">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-secondary to-accent grid place-items-center text-white font-semibold">
+                {authorInitials(article.author)}
+              </div>
+              <div className="text-sm">
+                <div className="font-semibold text-primary">{article.author}</div>
+                <div className="text-slate-500 text-xs">
+                  {article.date}{article.read ? ` · ${article.read} read` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <ArticleBody content={article.content} excerpt={article.excerpt} />
+            </div>
           </div>
 
           <Card hover={false} className="mt-10 bg-slate-50 border border-slate-200">
@@ -88,10 +100,15 @@ export default function BlogArticle() {
               <div className="grid sm:grid-cols-3 gap-4">
                 {related.map((r) => (
                   <Link to={`/blog/${r.id}`} key={r.id}>
-                    <Card>
-                      <span className={`inline-block text-xs font-semibold text-white px-2 py-0.5 rounded-full ${r.color}`}>{r.category}</span>
-                      <div className="font-semibold text-sm text-primary mt-2 leading-snug">{r.title}</div>
-                      <div className="text-xs text-slate-500 mt-2">{r.read}</div>
+                    <Card className="overflow-hidden p-0">
+                      {r.image ? (
+                        <img src={r.image} alt={r.title} className="w-full h-28 object-cover bg-slate-100" loading="lazy" />
+                      ) : null}
+                      <div className="p-4">
+                        <span className={`inline-block text-xs font-semibold text-white px-2 py-0.5 rounded-full ${r.color}`}>{r.category}</span>
+                        <div className="font-semibold text-sm text-primary mt-2 leading-snug">{r.title}</div>
+                        <div className="text-xs text-slate-500 mt-2">{r.author}{r.read ? ` · ${r.read}` : ''}</div>
+                      </div>
                     </Card>
                   </Link>
                 ))}

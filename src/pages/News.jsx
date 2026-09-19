@@ -35,12 +35,23 @@ export default function News() {
               <div className="lg:col-span-2 space-y-6">
                 {featured && (
                   <Link to={`/news/${featured.id}`}>
-                    <Card className="bg-gradient-to-br from-primary to-secondary text-white">
-                      <Badge tone="green">{featured.category}</Badge>
-                      <h2 className="font-display font-bold text-2xl md:text-3xl mt-3">{featured.title}</h2>
-                      <p className="text-white/80 mt-3">{featured.excerpt}</p>
-                      <div className="mt-4 text-xs text-white/60">
-                        {featured.source} • {featured.date}{featured.read ? ` • ${featured.read} read` : ''}
+                    <Card className="overflow-hidden p-0">
+                      {featured.image ? (
+                        <img
+                          src={featured.image}
+                          alt={featured.title}
+                          className="w-full h-56 object-cover bg-slate-100"
+                          loading="lazy"
+                        />
+                      ) : null}
+                      <div className="bg-gradient-to-br from-primary to-secondary text-white p-6">
+                        <Badge tone="green">{featured.category}</Badge>
+                        <h2 className="font-display font-bold text-2xl md:text-3xl mt-3">{featured.title}</h2>
+                        <p className="text-white/80 mt-3">{featured.excerpt}</p>
+                        <div className="mt-4 text-xs text-white/60">
+                          {featured.author || featured.source} • {featured.date}{featured.read ? ` • ${featured.read} read` : ''}
+                        </div>
+                        <span className="inline-block mt-3 text-sm font-semibold text-white">Read more →</span>
                       </div>
                     </Card>
                   </Link>
@@ -49,12 +60,27 @@ export default function News() {
                 <div className="grid sm:grid-cols-2 gap-5">
                   {rest.map((n) => (
                     <Link to={`/news/${n.id}`} key={n.id}>
-                      <Card>
-                        <Badge tone={n.tone}>{n.category}</Badge>
-                        <h3 className="font-semibold text-primary mt-3 leading-snug">{n.title}</h3>
-                        <p className="text-sm text-slate-600 mt-2 line-clamp-2">{n.excerpt}</p>
-                        <div className="text-xs text-slate-500 mt-3">
-                          {n.source} · {n.date}{n.read ? ` · ${n.read}` : ''}
+                      <Card className="overflow-hidden p-0">
+                        {n.image ? (
+                          <img
+                            src={n.image}
+                            alt={n.title}
+                            className="w-full h-36 object-cover bg-slate-100"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-36 bg-slate-100 grid place-items-center text-xs text-slate-400">
+                            No image
+                          </div>
+                        )}
+                        <div className="p-5">
+                          <Badge tone={n.tone}>{n.category}</Badge>
+                          <h3 className="font-semibold text-primary mt-3 leading-snug">{n.title}</h3>
+                          <p className="text-sm text-slate-600 mt-2 line-clamp-2">{n.excerpt}</p>
+                          <div className="text-xs text-slate-500 mt-3">
+                            {n.author || n.source} · {n.date}{n.read ? ` · ${n.read}` : ''}
+                          </div>
+                          <span className="inline-block mt-3 text-sm font-semibold text-secondary">Read more →</span>
                         </div>
                       </Card>
                     </Link>

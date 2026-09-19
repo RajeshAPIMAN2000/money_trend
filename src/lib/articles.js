@@ -1,4 +1,4 @@
-import { resolveMediaUrl, extractImagePath } from './media.js'
+import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
 
 const BLOG_CATEGORY_COLORS = {
   Beginners: 'bg-secondary',
@@ -48,6 +48,8 @@ function getCategoryTone(category) {
 
 function mapArticleItem(item, type = 'blog') {
   const category = item.category ?? item.cat ?? item.category_name ?? 'General'
+  const author = extractAuthorName(item, 'MoneyTrend')
+  const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
 
   return {
     id: item.id,
@@ -55,11 +57,11 @@ function mapArticleItem(item, type = 'blog') {
     excerpt: item.excerpt ?? item.summary ?? item.description ?? '',
     content: item.content ?? item.body ?? item.html_content ?? item.description ?? '',
     category,
-    author: item.author ?? item.author_name ?? item.created_by_name ?? item.created_by ?? 'MoneyTrend',
-    source: item.source ?? item.publisher ?? item.author ?? 'MoneyTrend',
+    author,
+    source: item.source ?? item.publisher ?? author,
     date: formatDate(item.published_at ?? item.publishedAt ?? item.created_at ?? item.date),
     read: formatReadTime(item),
-    image: resolveMediaUrl(extractImagePath(item)),
+    image: resolveMediaUrl(extractImagePath(item), { cacheKey: updatedAt }),
     views: item.views ?? item.view_count ?? null,
     tags: Array.isArray(item.tags) ? item.tags : [],
     color: getCategoryColor(category),
@@ -90,6 +92,11 @@ export function parseArticleDetail(payload, type = 'blog') {
     ?? root.news
     ?? root.item
     ?? root
+
+  // Avoid treating a list payload as a single article
+  if (Array.isArray(item)) {
+    return mapArticleItem(item[0] || {}, type)
+  }
 
   return mapArticleItem(item, type)
 }
