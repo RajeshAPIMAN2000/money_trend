@@ -40,6 +40,7 @@ import UsersPage from './admin/pages/users/UsersPage.jsx'
 import AddUserPage from './admin/pages/users/AddUserPage.jsx'
 import UserDetailsPage from './admin/pages/users/UserDetailsPage.jsx'
 import EditUserPage from './admin/pages/users/EditUserPage.jsx'
+import AdminGoalsPage from './admin/pages/users/AdminGoalsPage.jsx'
 import SubAdminsPage from './admin/pages/users/SubAdminsPage.jsx'
 import UserActivityPage from './admin/pages/users/UserActivityPage.jsx'
 import UserDocumentsPage from './admin/pages/users/UserDocumentsPage.jsx'
@@ -146,6 +147,7 @@ export default function App() {
             <Route path="users/add" element={<AddUserPage />} />
             <Route path="users/:id" element={<UserDetailsPage />} />
             <Route path="users/:id/edit" element={<EditUserPage />} />
+            <Route path="goals" element={<AdminGoalsPage />} />
             <Route path="sub-admins" element={<RequirePermission permission="sub_admins"><SubAdminsPage /></RequirePermission>} />
             <Route path="sub-admins/add" element={<Navigate to="/admin/sub-admins" replace />} />
             <Route path="sub-admins/:id/edit" element={<Navigate to="/admin/sub-admins" replace />} />

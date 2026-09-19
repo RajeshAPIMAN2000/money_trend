@@ -29,7 +29,7 @@ export default function CibilCheckModal() {
   const [mobile, setMobile] = useState(() => localStorage.getItem(MOBILE_KEY) || '')
   const [pan, setPan] = useState(() => localStorage.getItem('moneytrend-credit-pan') || '')
 
-  const canFetchLatest = open && (isAuthenticated || Boolean(mobile))
+  const canFetchLatest = open && step === 'success' && (isAuthenticated || Boolean(mobile))
   const { data: latest, refetch: refetchLatest } = useLatestCreditCheck({
     enabled: canFetchLatest,
     mobile: isAuthenticated ? undefined : mobile,
@@ -43,26 +43,26 @@ export default function CibilCheckModal() {
     setStep('form')
     setError('')
     setResult(null)
-    setPreferForm(false)
+    setPreferForm(true) // always prefer form when (re)opening Check CIBIL
     submitMutation.reset()
   }
 
   useEffect(() => {
-    if (!open) resetState()
+    if (!open) {
+      resetState()
+      return
+    }
+    // Always open on the check form — do not skip to a cached empty report
+    setStep('form')
+    setError('')
+    setResult(null)
+    setPreferForm(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  // Seed modal from latest only when already logged in (guest report needs auth)
+  // While on success and bureau is still PENDING, refresh from latest
   useEffect(() => {
-    if (!open || preferForm || !latest || result || !isAuthenticated) return
-    if (latest.score != null || latest.availableBureaus?.length || latest.pending) {
-      setResult(latest)
-      setStep(latest.noMatch && !latest.pending ? 'no_match' : 'success')
-    }
-  }, [open, latest, preferForm, result, isAuthenticated])
-
-  useEffect(() => {
-    if (!open || step !== 'success' || !latest) return
+    if (!open || step !== 'success' || !latest?.pending) return
     setResult(latest)
   }, [latest, open, step])
 
@@ -101,14 +101,18 @@ export default function CibilCheckModal() {
         setPan(payload.pan)
       }
 
-      if (parsed.noMatch || (parsed.score == null && !parsed.availableBureaus?.length && !parsed.pending)) {
-        setResult(parsed)
-        setStep('no_match')
+      if (parsed.loginRequired && !isAuthenticated) {
+        requireLogin()
         return
       }
 
-      if (parsed.loginRequired && !isAuthenticated) {
-        requireLogin()
+      const hasScore = parsed.score != null
+        || Object.values(parsed.bureauScores || {}).some((b) => b?.score != null)
+
+      if (parsed.noMatch || (!hasScore && !parsed.pending)) {
+        setResult(parsed)
+        setStep('no_match')
+        showToast(parsed.message || 'TransUnion CIBIL could not return a score for these details.')
         return
       }
 
@@ -125,7 +129,7 @@ export default function CibilCheckModal() {
           ? (parsed.message || 'Recent check found — showing your latest scores.')
           : parsed.pending
             ? 'Credit check started — waiting for bureau SUCCESS…'
-            : 'Credit check completed — CIBIL, Experian & Equifax where available.',
+            : 'Credit check completed — TransUnion CIBIL report.',
       )
       refetchLatest()
     } catch (err) {
@@ -165,11 +169,11 @@ export default function CibilCheckModal() {
                 {step === 'error' && 'Unable to complete check'}
               </h3>
               <p className="text-sm text-slate-500 mt-0.5">
-                {step === 'form' && 'We fetch CIBIL, Experian and Equifax (where available) with your consent.'}
-                {step === 'loading' && 'POST /api/credit-check — securely checking bureaus…'}
+                {step === 'form' && 'We fetch your TransUnion CIBIL score with your consent.'}
+                {step === 'loading' && 'Securely checking TransUnion CIBIL…'}
                 {step === 'success' && (result?.pending
                   ? 'Monitoring until status changes from PENDING to SUCCESS.'
-                  : 'Switch between CIBIL, Experian and Equifax below.')}
+                  : 'Your TransUnion CIBIL report is ready below.')}
                 {step === 'no_match' && 'Credit information could not be matched for the details provided.'}
                 {step === 'error' && 'Please review the message below and try again.'}
               </p>

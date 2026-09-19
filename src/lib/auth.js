@@ -59,12 +59,15 @@ export function getPostAuthPath(nextStep) {
 
 export function extractOtpMeta(response) {
   const root = response?.data ?? response ?? {}
+  const channel = String(root.channel ?? root.delivery ?? root.otp_channel ?? '').toLowerCase()
   return {
     phoneMasked: root.phone_masked ?? root.masked_phone ?? null,
     emailMasked: root.email_masked ?? root.masked_email ?? root.email ?? null,
     expiresIn: root.expires_in ?? root.expiresIn ?? 600,
     message: root.message ?? response?.message ?? null,
     purpose: root.purpose ?? null,
+    channel: channel === 'email' || channel === 'sms' ? channel : null,
+    delivery: root.delivery ?? root.channel ?? null,
   }
 }
 

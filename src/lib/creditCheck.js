@@ -5,9 +5,14 @@
 export const CREDIT_CONSENT_VERSION = 'v1.0'
 
 export const CREDIT_BUREAUS = [
-  { key: 'cibil', label: 'CIBIL', apiKey: 'CIBIL' },
+  { key: 'cibil', label: 'TransUnion CIBIL', apiKey: 'CIBIL' },
   { key: 'experian', label: 'Experian', apiKey: 'EXPERIAN' },
   { key: 'equifax', label: 'Equifax', apiKey: 'EQUIFAX' },
+]
+
+/** Bureaus shown in Home / Products / check UI — TransUnion CIBIL only */
+export const DISPLAY_CREDIT_BUREAUS = [
+  { key: 'cibil', label: 'TransUnion CIBIL', apiKey: 'CIBIL' },
 ]
 
 function unwrap(payload) {
@@ -54,7 +59,10 @@ export function bureauDisplayName(bureau) {
   const key = String(bureau || '').toUpperCase()
   if (key === 'EXPERIAN') return 'Experian'
   if (key === 'EQUIFAX') return 'Equifax'
-  if (key === 'CIBIL') return 'CIBIL'
+  if (key === 'CRIF') return 'CRIF'
+  if (key === 'CIBIL' || key.includes('TRANSUNION') || key.includes('CIBIL')) {
+    return 'TransUnion CIBIL'
+  }
   return key || 'Credit'
 }
 

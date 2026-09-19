@@ -1,8 +1,46 @@
+import { goalIconSrc } from '../lib/brandAssets.js'
+
 export const goals = [
-  { id: 1, name: 'Dream Home', target: 8000000, saved: 4800000, date: 'July 2028', sip: 32000, icon: '🏡' },
-  { id: 2, name: 'Retirement', target: 20000000, saved: 5600000, date: 'Dec 2040', sip: 18500, icon: '🌴' },
-  { id: 3, name: 'Child Education', target: 2500000, saved: 1125000, date: 'March 2030', sip: 8200, icon: '🎓' },
-  { id: 4, name: 'Emergency Fund', target: 500000, saved: 450000, date: 'Dec 2024', sip: 5000, icon: '🛟' },
+  {
+    id: 1,
+    name: 'Dream Home',
+    target: 8000000,
+    saved: 4800000,
+    date: 'July 2028',
+    sip: 32000,
+    icon: '🏡',
+    iconSrc: goalIconSrc('Dream House'),
+  },
+  {
+    id: 2,
+    name: 'Retirement',
+    target: 20000000,
+    saved: 5600000,
+    date: 'Dec 2040',
+    sip: 18500,
+    icon: '🌴',
+    iconSrc: goalIconSrc('Retirement Plan'),
+  },
+  {
+    id: 3,
+    name: 'Child Education',
+    target: 2500000,
+    saved: 1125000,
+    date: 'March 2030',
+    sip: 8200,
+    icon: '🎓',
+    iconSrc: goalIconSrc('Child Education'),
+  },
+  {
+    id: 4,
+    name: 'Emergency Fund',
+    target: 500000,
+    saved: 450000,
+    date: 'Dec 2024',
+    sip: 5000,
+    icon: '🛟',
+    iconSrc: goalIconSrc('Emergency Fund'),
+  },
 ]
 
 export const milestones = [

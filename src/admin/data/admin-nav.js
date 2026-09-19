@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, ShieldCheck, UserCog,
+  LayoutDashboard, Users, ShieldCheck, UserCog, Target,
   TrendingUp, PieChart, Landmark, RefreshCw, Repeat, Briefcase,
   ArrowDownToLine, ArrowUpFromLine, ShoppingCart, History,
   BarChart3, LineChart, Gem, Bitcoin,
@@ -19,6 +19,7 @@ export const adminNav = [
     icon: Users,
     children: [
       { label: 'Users', path: '/admin/users', icon: Users },
+      { label: 'Goals', path: '/admin/goals', icon: Target },
       { label: 'Sub Admins', path: '/admin/sub-admins', icon: UserCog },
       { label: 'KYC Verification', path: '/admin/kyc', icon: ShieldCheck },
     ],

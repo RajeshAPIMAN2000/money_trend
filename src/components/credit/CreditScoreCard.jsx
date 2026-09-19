@@ -7,7 +7,7 @@ import Badge from '../ui/Badge.jsx'
 import { BureauIcon, BureauTabLabel } from './BureauIcon.jsx'
 import CreditReportPanel from './CreditReportPanel.jsx'
 import {
-  CREDIT_BUREAUS,
+  DISPLAY_CREDIT_BUREAUS,
   bureauDisplayName,
   buildInlineReportFromResult,
   buildReportDownloadUrl,
@@ -159,26 +159,10 @@ export default function CreditScoreCard({
       ? `${result.reportDownload}${result.reportDownload.includes('?') ? '&' : '?'}download=1${mobile ? `&mobile=${String(mobile).replace(/\D/g, '')}` : ''}`
       : null)
 
-  const bureauTabs = CREDIT_BUREAUS.filter((b) => {
-    const entry = result.bureauScores?.[b.key]
-    return entry?.score != null || entry?.pending || available.includes(b.key)
-  })
-
-  const tabsToShow = bureauTabs.length
-    ? CREDIT_BUREAUS.filter((b) => {
-        const entry = result.bureauScores?.[b.key]
-        return entry != null || available.includes(b.key) || bureauTabs.some((t) => t.key === b.key)
-      })
-    : CREDIT_BUREAUS.filter((b) => available.includes(b.key) || String(result.provider).toLowerCase() === b.key)
+  const tabsToShow = DISPLAY_CREDIT_BUREAUS
 
   return (
     <div className={`rounded-2xl border border-slate-200 bg-white ${compact ? 'p-5' : 'p-6'} space-y-4`}>
-      {(result.isMock || report?.isMock) && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs font-medium text-amber-900">
-          Sandbox mock — not live bureau. Sample data from MoneyTrend sandbox.
-        </div>
-      )}
-
       {result.rateLimited && (
         <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-900">
           {result.message

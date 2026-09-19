@@ -8,6 +8,7 @@ import UsersPage from './pages/users/UsersPage.jsx'
 import AddUserPage from './pages/users/AddUserPage.jsx'
 import UserDetailsPage from './pages/users/UserDetailsPage.jsx'
 import EditUserPage from './pages/users/EditUserPage.jsx'
+import AdminGoalsPage from './pages/users/AdminGoalsPage.jsx'
 import SubAdminsPage from './pages/users/SubAdminsPage.jsx'
 import UserActivityPage from './pages/users/UserActivityPage.jsx'
 import UserDocumentsPage from './pages/users/UserDocumentsPage.jsx'
@@ -48,6 +49,7 @@ export function AdminRouteTree() {
         <Route path="users/add" element={<AddUserPage />} />
         <Route path="users/:id" element={<UserDetailsPage />} />
         <Route path="users/:id/edit" element={<EditUserPage />} />
+        <Route path="goals" element={<AdminGoalsPage />} />
         <Route path="sub-admins" element={<RequirePermission permission="sub_admins"><SubAdminsPage /></RequirePermission>} />
         <Route path="sub-admins/add" element={<Navigate to="/admin/sub-admins" replace />} />
         <Route path="sub-admins/:id/edit" element={<Navigate to="/admin/sub-admins" replace />} />

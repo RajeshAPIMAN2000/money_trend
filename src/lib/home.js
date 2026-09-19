@@ -1,3 +1,5 @@
+import { mapGoalForHome } from './goals.js'
+
 const BANK_COLORS = {
   hdfc: '#E11D48',
   icici: '#F97316',
@@ -224,6 +226,7 @@ export function parseHomeDashboard(payload) {
       message: root.message ?? 'Login to view your financial snapshot',
       snapshot: null,
       goals: [],
+      goalsSummary: null,
     }
   }
 
@@ -236,6 +239,13 @@ export function parseHomeDashboard(payload) {
   const netWorthTrend = (dashboard.net_worth_trend ?? dashboard.trend ?? []).map((point) => ({
     v: point.value ?? point.v ?? point.amount,
   }))
+
+  const goalsRaw = dashboard.goals ?? root.goals ?? []
+  const goals = (Array.isArray(goalsRaw) ? goalsRaw : [])
+    .map(mapGoalForHome)
+    .filter(Boolean)
+
+  const summary = dashboard.goals_summary ?? root.goals_summary ?? {}
 
   return {
     isLoggedIn: true,
@@ -251,13 +261,12 @@ export function parseHomeDashboard(payload) {
       allocation,
       netWorthTrend,
     },
-    goals: (dashboard.goals ?? []).map((goal) => ({
-      name: goal.name ?? goal.title,
-      target: goal.target_display ?? goal.target,
-      pct: goal.progress_pct ?? goal.progress ?? goal.pct ?? 0,
-      icon: goal.icon ?? '🎯',
-      color: goal.color ?? 'bg-blue-100 text-blue-700',
-    })),
+    goals,
+    goalsSummary: {
+      total: Number(summary.total ?? summary.total_goals ?? goals.length),
+      active: Number(summary.active ?? summary.active_goals ?? 0),
+      achieved: Number(summary.achieved ?? summary.completed ?? 0),
+    },
   }
 }
 

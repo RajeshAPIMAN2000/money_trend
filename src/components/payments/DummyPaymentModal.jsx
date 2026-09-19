@@ -103,7 +103,7 @@ export default function DummyPaymentModal() {
     e.preventDefault()
     setError('')
     if (!card.card_number || !card.cvv || !card.expiry_month || !card.expiry_year || !card.card_holder) {
-      setError('Enter complete card details (or pick a demo card).')
+      setError('Enter complete card details.')
       return
     }
     if (session.purpose !== PAYMENT_PURPOSES.CIBIL_REPORT && !(Number(session.amount) > 0)) {
@@ -133,7 +133,7 @@ export default function DummyPaymentModal() {
       if (cardResult.otpPending || cardResult.status === 'otp_pending') {
         setOtp('')
         setStep('otp')
-        showToast(cardResult.message || `Enter bank OTP ${demoOtp}`)
+        showToast(cardResult.message || 'OTP sent. Enter it to complete payment.')
         return
       }
 
@@ -205,8 +205,8 @@ export default function DummyPaymentModal() {
             </h3>
             <p className="text-sm text-slate-500 mt-0.5">
               {step === 'otp'
-                ? 'Dummy bank OTP — for demo / bank walkthrough'
-                : 'Dummy payment gateway — demo cards only'}
+                ? 'Enter the OTP sent to your registered mobile'
+                : (session.description || 'Enter card details to continue')}
             </p>
           </div>
           <button
@@ -247,8 +247,7 @@ export default function DummyPaymentModal() {
               <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-sm text-slate-700">
                 <p className="font-semibold text-primary">OTP sent to your registered mobile</p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Demo bank OTP is{' '}
-                  <span className="font-mono font-bold text-secondary tracking-widest">{demoOtp}</span>
+                  Enter the OTP to complete payment.
                 </p>
               </div>
 
@@ -309,7 +308,7 @@ export default function DummyPaymentModal() {
               )}
 
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demo cards</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Quick fill</p>
                 <div className="flex flex-wrap gap-2">
                   {cards.map((demo) => (
                     <button

@@ -6,6 +6,7 @@ import CountUp from '../react-bits/CountUp.jsx'
 import FadeInContent from '../react-bits/FadeInContent.jsx'
 import ShinyText from '../react-bits/ShinyText.jsx'
 import SpotlightCard from '../react-bits/SpotlightCard.jsx'
+import { TRANSUNION_CIBIL_ICON } from '../../lib/brandAssets.js'
 
 import { getScoreLabel } from '../../lib/cibil.js'
 
@@ -152,6 +153,13 @@ function CompactCard() {
           <FadeInContent delay={0.15} duration={0.5} y={10}>
             <div className="flex items-start justify-between gap-3 mb-6">
               <div className="flex-1">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <img
+                    src={TRANSUNION_CIBIL_ICON}
+                    alt="TransUnion CIBIL"
+                    className="h-8 w-auto max-w-[140px] object-contain"
+                  />
+                </div>
                 <h3 className="font-display font-bold text-[#1F2937] text-xl leading-snug tracking-tight">
                   Check Your{' '}
                   <ShinyText
@@ -164,7 +172,7 @@ function CompactCard() {
                   />
                 </h3>
                 <BlurText
-                  text="Premium Credit Analysis"
+                  text="Powered by TransUnion CIBIL"
                   delay={80}
                   stepDuration={0.3}
                   className="text-xs text-slate-500 font-semibold mt-1.5 uppercase tracking-widest block"
@@ -256,11 +264,18 @@ function FeaturedSection() {
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-300 animate-pulse" />
                 Premium Feature
               </div>
+              <div className="mb-4 inline-flex items-center rounded-xl bg-white/95 px-3 py-2 border border-white/20">
+                <img
+                  src={TRANSUNION_CIBIL_ICON}
+                  alt="TransUnion CIBIL"
+                  className="h-9 w-auto max-w-[160px] object-contain"
+                />
+              </div>
               <h2 className="font-display text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-tight tracking-tight mb-6">
                 Check Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-100">CIBIL Score</span>
               </h2>
               <p className="text-white/70 text-lg leading-relaxed max-w-md font-medium">
-                Advanced credit analysis powered by RBI-compliant technology. Understand your financial health instantly with zero impact on your score.
+                Advanced credit analysis powered by TransUnion CIBIL. Understand your financial health instantly with zero impact on your score.
               </p>
             </div>
             

@@ -165,7 +165,7 @@ export default function Navbar() {
   return (
     <>
       <header className={`sticky top-0 z-40 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-card' : 'bg-white/60 backdrop-blur'}`}>
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-[100px] flex items-center justify-between">
           <Link to="/" className="flex items-center shrink-0 py-1" onClick={close}>
             <MoneyTrendLogo variant="navbar" className="hover:opacity-90 transition-opacity" />
           </Link>

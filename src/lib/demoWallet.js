@@ -24,7 +24,7 @@ export function parseDemoConfig(payload) {
   return {
     demoMode: Boolean(root.demo_mode ?? root.enabled ?? true),
     enabled: Boolean(root.enabled ?? root.demo_mode ?? true),
-    demoNotice: root.demo_notice ?? root.notice ?? 'DEMO MODE — Virtual funds only.',
+    demoNotice: null,
     presets: presets.length ? presets : DEFAULT_PRESETS,
     dummyCardGateway: root.dummy_card_gateway ?? null,
     flow: Array.isArray(root.flow) ? root.flow : [],
@@ -46,10 +46,15 @@ export function parseDemoWallet(payload) {
     ?? 0,
   )
 
+  const rawLabel = data.label ?? 'Wallet'
+  const label = /demo|virtual funds|no real money/i.test(String(rawLabel))
+    ? 'Wallet'
+    : String(rawLabel)
+
   return {
     demoMode: Boolean(data.demo_mode ?? true),
-    demoNotice: data.demo_notice ?? data.notice ?? null,
-    label: data.label ?? 'DEMO WALLET — Virtual funds only. No real money.',
+    demoNotice: null,
+    label,
     currency: data.currency ?? 'INR',
     availableBalance: available,
     availableBalanceDisplay:
@@ -128,7 +133,7 @@ export function parseDemoTransactions(payload) {
 
   return {
     demoMode: Boolean(root.demo_mode ?? true),
-    demoNotice: root.demo_notice ?? null,
+    demoNotice: null,
     count: Number(root.count ?? transactions.length),
     transactions,
   }
@@ -160,7 +165,7 @@ export function parseDemoInvestments(payload) {
 
   return {
     demoMode: Boolean(root.demo_mode ?? true),
-    demoNotice: root.demo_notice ?? null,
+    demoNotice: null,
     summary: {
       totalInvestments: Number(summary.total_investments ?? items.length),
       activeFd: Number(summary.active_fd ?? 0),
@@ -207,7 +212,7 @@ export function mapDemoInvestment(item) {
     profit,
     profitDisplay: formatInr(profit),
     status,
-    demoLabel: item.demo_label ?? 'Demo product — not an actual bank deposit.',
+    demoLabel: item.demo_label ?? null,
     monthlyAmount: item.monthly_amount != null ? Number(item.monthly_amount) : null,
     installmentsPaid: item.installments_paid != null ? Number(item.installments_paid) : null,
     createdAt: item.created_at ?? null,

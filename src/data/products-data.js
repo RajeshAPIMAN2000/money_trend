@@ -69,7 +69,7 @@ export const products = [
   {
     id: 'cibil-score',
     title: 'CIBIL Score Checker',
-    desc: 'Know your credit health instantly — free, secure & RBI compliant.',
+    desc: 'Know your TransUnion CIBIL credit health instantly — free, secure & RBI compliant.',
     category: 'Credit',
     metric: '750 Avg Score',
     metricLabel: 'Platform Avg',

@@ -55,7 +55,8 @@ function ForgotView({ onSwitchLogin }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [otp, setOtp] = useState('')
-  const [phoneMasked, setPhoneMasked] = useState('')
+  const [emailMasked, setEmailMasked] = useState('')
+  const [otpChannel, setOtpChannel] = useState('email')
   const [account, setAccount] = useState({ email: '', phone: '', dateOfBirth: '' })
   const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
 
@@ -77,11 +78,12 @@ function ForgotView({ onSwitchLogin }) {
       const res = await authApi.sendForgotPasswordOtp(payload)
       const meta = extractOtpMeta(res)
       setAccount({ email: data.email, phone: data.phone, dateOfBirth: data.dateOfBirth })
-      setPhoneMasked(meta.phoneMasked || `******${data.phone.slice(-4)}`)
+      setEmailMasked(meta.emailMasked || data.email)
+      setOtpChannel(meta.channel === 'sms' ? 'sms' : 'email')
       setOtp('')
       setStep('otp')
       start(meta.expiresIn)
-      if (meta.message) showToast(meta.message)
+      showToast(meta.message || 'OTP sent to your email')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to send OTP')
     } finally {
@@ -97,8 +99,10 @@ function ForgotView({ onSwitchLogin }) {
       const res = await authApi.resendForgotPasswordOtp(buildAccountPayload(account))
       const meta = extractOtpMeta(res)
       setOtp('')
+      if (meta.emailMasked) setEmailMasked(meta.emailMasked)
+      if (meta.channel) setOtpChannel(meta.channel === 'sms' ? 'sms' : 'email')
       start(meta.expiresIn)
-      showToast(meta.message || 'OTP sent successfully')
+      showToast(meta.message || 'OTP resent to your email')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to resend OTP')
     } finally {
@@ -131,8 +135,9 @@ function ForgotView({ onSwitchLogin }) {
         phone: account.phone,
         date_of_birth: account.dateOfBirth,
         otp,
-        new_password: data.newPassword,
+        password: data.newPassword,
         confirm_password: data.confirmPassword,
+        new_password: data.newPassword,
       })
       showToast('Password reset successful! Please sign in.')
       onSwitchLogin()
@@ -147,7 +152,8 @@ function ForgotView({ onSwitchLogin }) {
     return (
       <>
         <OtpVerification
-          phoneMasked={phoneMasked}
+          channel={otpChannel}
+          destinationLabel={emailMasked || account.email}
           otp={otp}
           onOtpChange={setOtp}
           seconds={seconds}
@@ -196,6 +202,9 @@ function ForgotView({ onSwitchLogin }) {
     <>
       {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">{error}</div>}
       <form onSubmit={detailsForm.handleSubmit(sendOtp)} className="space-y-4">
+        <p className="text-xs text-slate-500 -mt-1">
+          We will email a one-time password to reset your account.
+        </p>
         <FormInput
           label="Email"
           type="email"
@@ -228,7 +237,7 @@ function ForgotView({ onSwitchLogin }) {
           {...detailsForm.register('dateOfBirth', { required: 'Date of birth is required' })}
         />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Sending OTP...' : 'Send OTP via SMS'}
+          {loading ? 'Sending OTP...' : 'Send OTP via Email'}
         </Button>
         <button type="button" onClick={onSwitchLogin} className="w-full text-sm text-secondary hover:underline">
           ← Back to login
@@ -308,7 +317,7 @@ export default function AuthModal() {
   const titles = {
     login: { title: 'Welcome back', subtitle: 'Sign in with email, password, and email OTP' },
     register: { title: 'Create account', subtitle: 'Fill your details, then verify the OTP sent to your email' },
-    forgot: { title: 'Forgot password', subtitle: 'Verify your identity to reset your password via SMS OTP' },
+    forgot: { title: 'Forgot password', subtitle: 'Verify your identity — we will email an OTP to reset your password' },
   }
 
   const footers = {

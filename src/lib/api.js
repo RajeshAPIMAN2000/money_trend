@@ -88,6 +88,8 @@ export const api = {
   getAdminDashboard: () => request('/admin/dashboard', { admin: true }),
   getAdminUsers: () => request('/admin/users', { admin: true }),
   getAdminUser: (id) => request(`/admin/users/${encodeURIComponent(id)}`, { admin: true }),
+  getAdminUserGoals: (id) =>
+    request(`/admin/users/${encodeURIComponent(id)}/goals`, { admin: true }),
   updateUserKycStatus: (id, body) =>
     request(`/admin/users/${encodeURIComponent(id)}/kyc-status`, { method: 'PATCH', body, admin: true }),
 
@@ -401,6 +403,35 @@ export const api = {
   getHomeFull: () => request('/home/full'),
   getHomeDashboard: () => request('/home/dashboard'),
 
+  // User goals
+  getGoalTypes: () => request('/goals/types'),
+  getGoals: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/goals${q ? `?${q}` : ''}`)
+  },
+  getGoal: (id) => request(`/goals/${encodeURIComponent(id)}`),
+  createGoal: (body) => request('/goals', { method: 'POST', body }),
+  updateGoal: (id, body) =>
+    request(`/goals/${encodeURIComponent(id)}`, { method: 'PUT', body }),
+  patchGoal: (id, body) =>
+    request(`/goals/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
+  deleteGoal: (id) =>
+    request(`/goals/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  contributeToGoal: (id, body) =>
+    request(`/goals/${encodeURIComponent(id)}/contribute`, { method: 'POST', body }),
+
+  // Admin goals
+  getAdminGoals: (params = {}) => {
+    const q = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v != null && v !== '') q.set(k, String(v))
+    })
+    const qs = q.toString()
+    return request(`/admin/goals${qs ? `?${qs}` : ''}`, { admin: true })
+  },
+  getAdminGoal: (id) =>
+    request(`/admin/goals/${encodeURIComponent(id)}`, { admin: true }),
+
   // User profile portfolio — GET /api/profile/portfolio (JWT required)
   getProfilePortfolio: () => request('/profile/portfolio'),
   getProfile: () => request('/profile'),
@@ -492,6 +523,10 @@ export const api = {
     request('/wallet/bank-account', { method: 'POST', body }),
   withdrawWallet: (body) =>
     request('/wallet/withdraw', { method: 'POST', body }),
+  getWalletWithdrawals: (params = {}) => {
+    const q = new URLSearchParams(params).toString()
+    return request(`/wallet/withdrawals${q ? `?${q}` : ''}`)
+  },
   getWalletTaxReport: () => request('/wallet/tax-report'),
 
   // Demo wallet / investments (virtual funds)

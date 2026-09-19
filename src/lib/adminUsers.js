@@ -1,5 +1,7 @@
+import { parseGoalsList } from './goals.js'
 import { resolveMediaUrl } from './media.js'
 import { extractCreditScore, formatCreditDate, getScoreBandLabel } from './creditCheck.js'
+
 
 function unwrap(payload) {
   return payload?.data ?? payload ?? {}
@@ -45,7 +47,41 @@ export function parseAdminUsersList(payload) {
 export function parseAdminUserDetail(payload) {
   const root = unwrap(payload)
   const user = root.user ?? root
-  return parseAdminUserRecord(user)
+  const parsed = parseAdminUserRecord(user)
+  if (!parsed) return null
+
+  // Goals may be nested on user, detail root, or portfolio
+  const goalsRaw = root.goals
+    ?? user.goals
+    ?? root.user_goals
+    ?? user.user_goals
+    ?? []
+  parsed.goals = parseAdminUserGoals({ goals: goalsRaw })
+  return parsed
+}
+
+export function parseAdminUserGoals(payload) {
+  const parsed = parseGoalsList(payload)
+  // Normalize to admin User Details card shape
+  return parsed.items.map((g) => ({
+    id: g.id,
+    name: g.title,
+    target: g.target,
+    targetDisplay: g.targetDisplay,
+    saved: g.saved,
+    savedDisplay: g.savedDisplay,
+    pct: g.pct,
+    targetDate: g.targetDateLabel,
+    sip: g.sip,
+    status: g.status,
+    iconSrc: g.iconSrc,
+    icon: g.icon,
+    goalType: g.goalType,
+    goalTypeLabel: g.goalTypeLabel,
+    userName: g.userName,
+    userEmail: g.userEmail,
+    userId: g.userId,
+  }))
 }
 
 function parseAdminUserRecord(user) {
@@ -76,8 +112,9 @@ function parseAdminUserRecord(user) {
     creditScore: creditScoreValue,
     creditScoreLabel: creditScoreValue != null ? String(creditScoreValue) : '—',
     creditBand: getScoreBandLabel(creditScoreValue, cibilMeta.band ?? cibilMeta.score_band),
-    creditProvider: creditMeta.provider ?? cibilMeta.provider ?? (creditScoreValue != null ? 'EXPERIAN' : '—'),
+    creditProvider: creditMeta.provider ?? cibilMeta.provider ?? (creditScoreValue != null ? 'TransUnion CIBIL' : '—'),
     creditCheckedAt: formatCreditDate(cibilMeta.checked_at ?? cibilMeta.checkedAt ?? creditMeta.checked_at),
+    goals: [],
     kyc: {
       submitted: Boolean(kyc.submitted),
       message: kyc.message ?? '',
