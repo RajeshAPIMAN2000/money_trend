@@ -186,6 +186,10 @@ export const api = {
     request(`/admin/news/${encodeURIComponent(id)}`, { method: 'PUT', body: formData, admin: true }),
   deleteAdminNews: (id) =>
     request(`/admin/news/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
+  approveAdminNews: (id) =>
+    request(`/admin/news/${encodeURIComponent(id)}/approve`, { method: 'POST', body: {}, admin: true }),
+  rejectAdminNews: (id, body) =>
+    request(`/admin/news/${encodeURIComponent(id)}/reject`, { method: 'POST', body, admin: true }),
 
   // Admin Content — Blogs
   getAdminBlogs: (params = {}) => {
@@ -200,6 +204,10 @@ export const api = {
     request(`/admin/blogs/${encodeURIComponent(id)}`, { method: 'PUT', body: formData, admin: true }),
   deleteAdminBlog: (id) =>
     request(`/admin/blogs/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
+  approveAdminBlog: (id) =>
+    request(`/admin/blogs/${encodeURIComponent(id)}/approve`, { method: 'POST', body: {}, admin: true }),
+  rejectAdminBlog: (id, body) =>
+    request(`/admin/blogs/${encodeURIComponent(id)}/reject`, { method: 'POST', body, admin: true }),
 
   // Admin Content — Banners
   getAdminBanners: (params = {}) => {

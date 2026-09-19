@@ -19,7 +19,6 @@ async function refreshAdminArticles(queryClient, type, id) {
       queryKey: type === 'blog' ? blogsQueryKey([id]) : newsQueryKey([id]),
     })
   }
-  // Public site lists/details
   await queryClient.invalidateQueries({ queryKey: ['articles'] })
 }
 
@@ -65,7 +64,21 @@ export function useAdminNewsMutations() {
     },
   })
 
-  return { create, update, remove }
+  const approve = useMutation({
+    mutationFn: (id) => api.approveAdminNews(id),
+    onSuccess: async (_data, id) => {
+      await refreshAdminArticles(queryClient, 'news', id)
+    },
+  })
+
+  const reject = useMutation({
+    mutationFn: ({ id, reason }) => api.rejectAdminNews(id, { reason }),
+    onSuccess: async (_data, vars) => {
+      await refreshAdminArticles(queryClient, 'news', vars?.id)
+    },
+  })
+
+  return { create, update, remove, approve, reject }
 }
 
 export function useAdminBlogs(params = {}) {
@@ -110,5 +123,19 @@ export function useAdminBlogMutations() {
     },
   })
 
-  return { create, update, remove }
+  const approve = useMutation({
+    mutationFn: (id) => api.approveAdminBlog(id),
+    onSuccess: async (_data, id) => {
+      await refreshAdminArticles(queryClient, 'blog', id)
+    },
+  })
+
+  const reject = useMutation({
+    mutationFn: ({ id, reason }) => api.rejectAdminBlog(id, { reason }),
+    onSuccess: async (_data, vars) => {
+      await refreshAdminArticles(queryClient, 'blog', vars?.id)
+    },
+  })
+
+  return { create, update, remove, approve, reject }
 }

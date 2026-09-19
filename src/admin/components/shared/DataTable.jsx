@@ -70,7 +70,10 @@ export default function DataTable({
     () => {
       let rows = allRows
       if (filter !== 'all' && filters.length) {
-        rows = rows.filter(r => String(r.status || r[statusColumn] || '').toLowerCase() === filter.toLowerCase())
+        rows = rows.filter((r) => {
+          const status = String(r.statusValue || r.status || r[statusColumn] || '').toLowerCase()
+          return status === filter.toLowerCase()
+        })
       }
       return paginateRows(rows, page, pageSize, search)
     },

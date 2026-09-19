@@ -40,16 +40,20 @@ function mapAdminArticleRow(item) {
     ?? item.type_label
     ?? null
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
+  const statusValue = String(status).toLowerCase()
 
   return {
     id: item.id,
     title,
     category: category && String(category).trim() ? String(category) : '—',
     author: extractAuthorName(item, 'MoneyTrend'),
-    // views: item.views ?? item.view_count ?? '—',
-    published: formatDateTime(item.published_at ?? item.created_at ?? item.updated_at),
+    published: formatDateTime(item.published_at ?? item.submitted_at ?? item.created_at ?? item.updated_at),
+    submittedAt: formatDateTime(item.submitted_at ?? item.created_at),
+    reviewedAt: formatDateTime(item.reviewed_at),
     status: formatStatus(status),
-    statusValue: String(status).toLowerCase(),
+    statusValue,
+    rejectionReason: item.rejection_reason ?? item.rejectionReason ?? item.reason ?? null,
+    reviewedBy: item.reviewed_by_name ?? item.reviewed_by ?? item.reviewedBy ?? null,
     description: item.description ?? item.excerpt ?? item.summary ?? '',
     content: item.content ?? item.body ?? item.description ?? '',
     image: resolveMediaUrl(extractImagePath(item), { cacheKey: updatedAt }),
@@ -68,20 +72,19 @@ export function parseAdminArticleList(payload, type = 'news') {
   const root = unwrap(payload)
   const items = extractItems(root, type).map(mapAdminArticleRow)
   const published = items.filter((item) => item.statusValue === 'published').length
+  const pending = items.filter((item) => item.statusValue === 'pending').length
+  const rejected = items.filter((item) => item.statusValue === 'rejected').length
   const drafts = items.filter((item) => item.statusValue === 'draft').length
-  // const totalViews = items.reduce((sum, item) => {
-  //   const views = Number(item.views)
-  //   return sum + (Number.isNaN(views) ? 0 : views)
-  // }, 0)
 
   return {
     count: root.count ?? root.total ?? items.length,
     items,
     stats: [
+      { label: 'Pending', value: String(pending) },
       { label: 'Published', value: String(published) },
-      { label: 'Drafts', value: String(drafts) },
+      { label: 'Rejected', value: String(rejected) },
       { label: 'Total', value: String(root.count ?? root.total ?? items.length) },
-      // { label: 'Total Views', value: totalViews.toLocaleString('en-IN') },
+      ...(drafts > 0 ? [{ label: 'Drafts', value: String(drafts) }] : []),
     ],
   }
 }
@@ -92,7 +95,7 @@ export function parseAdminArticleDetail(payload, type = 'news') {
   return mapAdminArticleRow(item)
 }
 
-export function buildArticleFormData(fields) {
+export function buildArticleFormData(fields, { isSubAdmin = false } = {}) {
   const fd = new FormData()
   const title = fields.title ?? fields.heading ?? ''
   fd.append('title', title)
@@ -100,7 +103,18 @@ export function buildArticleFormData(fields) {
   fd.append('description', fields.description ?? '')
   fd.append('content', fields.content ?? fields.description ?? '')
   fd.append('category', fields.category ?? '')
-  fd.append('status', fields.status ?? 'draft')
+
+  // Sub Admin posts always go pending; Admin may set draft/published
+  if (isSubAdmin) {
+    fd.append('status', 'pending')
+    if (fields.resubmit) fd.append('resubmit', 'true')
+  } else if (fields.status) {
+    fd.append('status', fields.status)
+  }
+
+  if (fields.resubmit) {
+    fd.append('resubmit', 'true')
+  }
 
   const file = fields.image
   if (file instanceof File) {
@@ -118,19 +132,23 @@ export const EMPTY_ARTICLE_FORM = {
   content: '',
   category: '',
   status: 'published',
+  resubmit: false,
   image: null,
 }
 
 export function articleToForm(item) {
   if (!item) return { ...EMPTY_ARTICLE_FORM }
+  const rejected = item.statusValue === 'rejected'
   return {
     title: item.title ?? item.heading ?? '',
     description: item.description ?? '',
     content: item.content ?? '',
     category: item.category === '—' ? '' : (item.category ?? ''),
     status: item.statusValue ?? 'draft',
+    resubmit: rejected,
     image: null,
     existingImage: item.image ?? null,
+    rejectionReason: item.rejectionReason ?? null,
   }
 }
 
