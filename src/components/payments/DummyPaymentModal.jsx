@@ -300,16 +300,11 @@ export default function DummyPaymentModal() {
                   Paying unlocks full CIBIL report download for your account.
                 </p>
               )}
-              {(session.purpose === PAYMENT_PURPOSES.FD_INVEST || session.purpose === PAYMENT_PURPOSES.RD_INVEST) && (
+              {(session.purpose === PAYMENT_PURPOSES.FD_INVEST
+                || session.purpose === PAYMENT_PURPOSES.RD_INVEST
+                || session.purpose === PAYMENT_PURPOSES.WALLET_DEPOSIT) && (
                 <p className="text-xs text-slate-500">
-                  {session.meta?.shortfall
-                    ? 'This tops up only the wallet shortfall. After payment, your investment is booked from wallet.'
-                    : 'Payment credits your wallet, then the investment is booked from wallet balance.'}
-                </p>
-              )}
-              {session.purpose === PAYMENT_PURPOSES.WALLET_DEPOSIT && (
-                <p className="text-xs text-slate-500">
-                  Dummy top-up credits your wallet balance.
+                  This credits your wallet only. After payment, press Invest again to book from wallet.
                 </p>
               )}
 

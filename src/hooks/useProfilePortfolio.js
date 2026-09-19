@@ -13,5 +13,6 @@ export function useProfilePortfolio(enabled = true) {
     queryFn: async () => parseProfilePortfolio(await api.getProfilePortfolio()),
     enabled: enabled && hasToken,
     retry: false,
+    refetchOnWindowFocus: true,
   })
 }

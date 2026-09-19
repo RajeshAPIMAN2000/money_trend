@@ -21,6 +21,18 @@ function attachPayError(err) {
   return err
 }
 
+/** Refresh wallet, portfolio, and related money views after top-up or invest. */
+export function invalidateMoneyQueries(queryClient) {
+  if (!queryClient) return Promise.resolve()
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['wallet'] }),
+    queryClient.invalidateQueries({ queryKey: ['profile', 'portfolio'] }),
+    queryClient.invalidateQueries({ queryKey: ['payments'] }),
+    queryClient.invalidateQueries({ queryKey: ['fd'] }),
+    queryClient.invalidateQueries({ queryKey: ['rd'] }),
+  ])
+}
+
 export function useDummyPaymentConfig({ enabled = true } = {}) {
   return useQuery({
     queryKey: ['payments', 'dummy', 'config'],
@@ -73,12 +85,19 @@ export function useCreateDummyPayment() {
 }
 
 export function usePayDummyPayment() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ orderId, card }) => {
       try {
         return parseDummyPayResult(await api.payDummyPayment(buildPayBody(orderId, card)))
       } catch (err) {
         throw attachPayError(err)
+      }
+    },
+    onSuccess: (result) => {
+      // Card-only success (no OTP) or otp_pending — refresh when money moved
+      if (result?.status === 'paid' || result?.walletCredited) {
+        invalidateMoneyQueries(queryClient)
       }
     },
   })
@@ -97,11 +116,8 @@ export function useVerifyDummyPaymentOtp() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] })
-      queryClient.invalidateQueries({ queryKey: ['wallet'] })
+      invalidateMoneyQueries(queryClient)
       queryClient.invalidateQueries({ queryKey: ['credit-check'] })
-      queryClient.invalidateQueries({ queryKey: ['fd'] })
-      queryClient.invalidateQueries({ queryKey: ['rd'] })
     },
   })
 }
@@ -142,6 +158,7 @@ export function useWallet({ enabled = true } = {}) {
     },
     enabled: Boolean(enabled),
     retry: false,
+    refetchOnWindowFocus: true,
   })
 }
 

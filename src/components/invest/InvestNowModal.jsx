@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, Wallet, X } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import FormInput from '../auth/FormInput.jsx'
@@ -13,7 +14,10 @@ import {
   formatInr,
   parsePaymentRequiredError,
 } from '../../lib/dummyPayment.js'
-import { checkWalletCanInvest } from '../../hooks/useDummyPayment.js'
+import {
+  checkWalletCanInvest,
+  invalidateMoneyQueries,
+} from '../../hooks/useDummyPayment.js'
 
 function tenureToMonths(tenureLabel, tenureDisplay) {
   const raw = String(tenureLabel || tenureDisplay || '').toLowerCase()
@@ -60,8 +64,8 @@ async function bookFdOrRd({ isRd, bankName, bankCode, amountNum, rate, tenureMon
 /**
  * Wallet-first invest:
  * 1) GET /wallet/can-invest
- * 2) enough balance → POST /fd or /market/rd
- * 3) shortfall → dummy pay shortfall → invest again
+ * 2) enough balance → POST /fd or /market/rd (deducts wallet)
+ * 3) shortfall → dummy pay WALLET_DEPOSIT only (stores money) → user presses Invest again
  */
 export default function InvestNowModal({
   open,
@@ -75,6 +79,7 @@ export default function InvestNowModal({
   const { openLogin } = useAuthModal()
   const { openPayment } = usePaymentModal()
   const { showToast } = useToast()
+  const queryClient = useQueryClient()
 
   const defaultRow = useMemo(() => {
     if (!rates?.length) return null
@@ -116,46 +121,48 @@ export default function InvestNowModal({
   const productType = isRd ? 'rd' : 'fd'
   const bankName = bank?.bankName || 'Bank'
   const bankCode = bank?.shortName || bank?.bankName || 'BANK'
-  const defaultPurpose = isRd ? PAYMENT_PURPOSES.RD_INVEST : PAYMENT_PURPOSES.FD_INVEST
 
-  const openShortfallPayment = (check, investPayload) => {
+  const refreshWalletHint = async () => {
+    if (!(amountNum > 0)) return null
+    try {
+      const check = await checkWalletCanInvest(productType, amountNum)
+      setWalletHint(check)
+      return check
+    } catch {
+      return null
+    }
+  }
+
+  const openShortfallPayment = (check) => {
     const payAmount = Number(check.payment?.amount || check.shortfall || 0)
-    const purpose = check.payment?.purpose || defaultPurpose
+    // Always credit wallet only — invest happens on the next Invest press
+    const purpose = PAYMENT_PURPOSES.WALLET_DEPOSIT
     if (!(payAmount > 0)) {
       setError('Unable to determine top-up amount. Please try again.')
       return
     }
 
-    onClose()
     openPayment({
       purpose,
       amount: payAmount,
-      title: `Top up wallet · ${formatInr(payAmount)}`,
-      description: isRd
-        ? `${bankName} RD shortfall · then book investment`
-        : `${bankName} FD shortfall · then book investment`,
+      title: `Add money to wallet · ${formatInr(payAmount)}`,
+      description: `${bankName} ${isRd ? 'RD' : 'FD'} — wallet top-up only`,
       meta: {
         bank_name: bankName,
         bank_code: bankCode,
         product: isRd ? 'RD' : 'FD',
-        interest_rate: investPayload.rate,
-        tenure_months: investPayload.tenureMonths,
-        invest_amount: investPayload.amountNum,
         shortfall: payAmount,
+        reason: 'invest_shortfall',
       },
       onSuccess: async () => {
-        try {
-          await bookFdOrRd(investPayload)
-          showToast(isRd ? 'RD booked successfully' : 'FD booked successfully')
-        } catch (err) {
-          const again = parsePaymentRequiredError(err)
-          if (again?.showPaymentGateway) {
-            showToast('Wallet still short — complete another top-up to finish.')
-            openShortfallPayment(again, investPayload)
-            return
-          }
-          showToast(err?.data?.message || err?.message || 'Payment succeeded but booking failed.')
-        }
+        await invalidateMoneyQueries(queryClient)
+        showToast('Money added to wallet. Press Invest to book from wallet.')
+        setBusy(false)
+        await refreshWalletHint()
+      },
+      onCancel: () => {
+        setBusy(false)
+        refreshWalletHint()
       },
     })
   }
@@ -193,13 +200,14 @@ export default function InvestNowModal({
       if (check.canPayFromWallet && !check.showPaymentGateway) {
         try {
           await bookFdOrRd(investPayload)
+          await invalidateMoneyQueries(queryClient)
           showToast(isRd ? 'RD booked from wallet' : 'FD booked from wallet')
           onClose()
           return
         } catch (err) {
           const payHint = parsePaymentRequiredError(err)
           if (payHint?.showPaymentGateway) {
-            openShortfallPayment(payHint, investPayload)
+            openShortfallPayment(payHint)
             return
           }
           throw err
@@ -207,19 +215,20 @@ export default function InvestNowModal({
       }
 
       if (check.showPaymentGateway) {
-        openShortfallPayment(check, investPayload)
+        openShortfallPayment(check)
         return
       }
 
       // Ambiguous response — try invest; handle 402
       try {
         await bookFdOrRd(investPayload)
+        await invalidateMoneyQueries(queryClient)
         showToast(isRd ? 'RD booked successfully' : 'FD booked successfully')
         onClose()
       } catch (err) {
         const payHint = parsePaymentRequiredError(err)
         if (payHint?.showPaymentGateway) {
-          openShortfallPayment(payHint, investPayload)
+          openShortfallPayment(payHint)
           return
         }
         throw err
@@ -239,7 +248,7 @@ export default function InvestNowModal({
       return `Invest from wallet · ${formatInr(amountNum || 0)}`
     }
     if (walletHint?.showPaymentGateway && (walletHint.shortfall || walletHint.payment?.amount)) {
-      return `Top up ${formatInr(walletHint.payment?.amount || walletHint.shortfall)} & invest`
+      return `Add ${formatInr(walletHint.payment?.amount || walletHint.shortfall)} to wallet`
     }
     return `Continue · ${formatInr(amountNum || 0)}`
   })()
@@ -327,19 +336,24 @@ export default function InvestNowModal({
                 )}
                 {walletHint.showPaymentGateway && (
                   <div className="flex justify-between text-amber-800">
-                    <span>Shortfall to pay</span>
+                    <span>Add to wallet</span>
                     <span className="font-semibold">
                       {formatInr(walletHint.payment?.amount || walletHint.shortfall)}
                     </span>
                   </div>
+                )}
+                {walletHint.canPayFromWallet && !walletHint.showPaymentGateway && (
+                  <p className="text-xs text-emerald-700 pt-1">
+                    Wallet covers this amount. Press Invest to deduct and book.
+                  </p>
                 )}
               </>
             )}
           </div>
 
           <p className="text-xs text-slate-500">
-            We check your wallet first. If balance covers the investment, we book directly — no card UI.
-            Otherwise you only pay the shortfall via the dummy gateway, then we invest.
+            Money added via payment is stored in your wallet first. Pressing Invest deducts from
+            wallet and books the {isRd ? 'RD' : 'FD'}. If you invest the full balance, wallet shows ₹0.
           </p>
 
           {error && (
