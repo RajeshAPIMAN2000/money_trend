@@ -56,6 +56,7 @@ import TransactionsPage from './admin/pages/transactions/TransactionsPage.jsx'
 import NewsPage from './admin/pages/content/NewsPage.jsx'
 import BlogsPage from './admin/pages/content/BlogsPage.jsx'
 import BannersPage from './admin/pages/content/BannersPage.jsx'
+import AdminTestimonialsPage from './admin/pages/content/AdminTestimonialsPage.jsx'
 import SeoManagementPage from './admin/pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './admin/pages/credit/AdminCreditChecksPage.jsx'
 import SettingsPage from './admin/pages/settings/SettingsPage.jsx'
@@ -66,6 +67,7 @@ import { ProfilePage, ChangePasswordPage } from './admin/pages/profile/ProfilePa
 import { moduleRegistry } from './admin/data/moduleRegistry.js'
 import RequirePermission from './admin/components/shared/RequirePermission.jsx'
 import SeoHead from './components/common/SeoHead.jsx'
+import SiteFloatingWidgets from './components/common/SiteFloatingWidgets.jsx'
 
 const moduleSlugs = Object.keys(moduleRegistry)
 
@@ -105,6 +107,7 @@ function PublicApp() {
         </Routes>
       </main>
       <Footer />
+      <SiteFloatingWidgets />
     </div>
   )
 }
@@ -166,6 +169,7 @@ export default function App() {
             <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
             <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
             <Route path="banners" element={<BannersPage />} />
+            <Route path="testimonials" element={<AdminTestimonialsPage />} />
             <Route path="credit-checks" element={<AdminCreditChecksPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />

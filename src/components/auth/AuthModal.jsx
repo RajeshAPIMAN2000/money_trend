@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Mail, Lock, Phone, User, X, Calendar } from 'lucide-react'
+import { Mail, Lock, Phone, X, Calendar } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import FormInput from './FormInput.jsx'
 import PasswordStrength from './PasswordStrength.jsx'
@@ -11,14 +11,13 @@ import RegisterView from './RegisterView.jsx'
 import KycSelectionModal from './KycSelectionModal.jsx'
 import Button from '../ui/Button.jsx'
 import MoneyTrendLogo from '../common/MoneyTrendLogo.jsx'
-import { useAuth } from '../../context/AuthContext.jsx'
 import { useAuthModal } from '../../context/AuthModalContext.jsx'
 import { useToast } from '../../context/ToastContext.jsx'
 import { authApi } from '../../lib/authApi.js'
 import { api, ApiError } from '../../lib/api.js'
 import { extractOtpMeta, getPostAuthPath } from '../../lib/auth.js'
 import { useOtpCountdown } from '../../hooks/useOtpCountdown.js'
-import { NAME_RE, EMAIL_RE, PHONE_RE } from '../../lib/validators.js'
+import { EMAIL_RE, PHONE_RE } from '../../lib/validators.js'
 
 function AuthModalShell({ title, subtitle, onClose, children, footer }) {
   return (
@@ -51,7 +50,7 @@ function AuthModalShell({ title, subtitle, onClose, children, footer }) {
 
 function ForgotView({ onSwitchLogin }) {
   const { showToast } = useToast()
-  const [step, setStep] = useState('details')
+  const [step, setStep] = useState('details') // details | otp | reset
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [otp, setOtp] = useState('')
@@ -65,9 +64,9 @@ function ForgotView({ onSwitchLogin }) {
   const watchPassword = resetForm.watch('newPassword', '')
 
   const buildAccountPayload = (data) => ({
-    email: data.email,
-    phone: data.phone,
-    date_of_birth: data.dateOfBirth,
+    email: String(data.email || '').trim().toLowerCase(),
+    phone: String(data.phone || '').replace(/\D/g, ''),
+    date_of_birth: data.dateOfBirth || data.date_of_birth,
   })
 
   const sendOtp = async (data) => {
@@ -77,15 +76,23 @@ function ForgotView({ onSwitchLogin }) {
       const payload = buildAccountPayload(data)
       const res = await authApi.sendForgotPasswordOtp(payload)
       const meta = extractOtpMeta(res)
-      setAccount({ email: data.email, phone: data.phone, dateOfBirth: data.dateOfBirth })
-      setEmailMasked(meta.emailMasked || data.email)
+      setAccount({
+        email: payload.email,
+        phone: payload.phone,
+        dateOfBirth: payload.date_of_birth,
+      })
+      setEmailMasked(meta.emailMasked || payload.email)
       setOtpChannel(meta.channel === 'sms' ? 'sms' : 'email')
       setOtp('')
       setStep('otp')
       start(meta.expiresIn)
-      showToast(meta.message || 'OTP sent to your email')
+      showToast(meta.message || 'OTP sent to your email. Check inbox and spam.')
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to send OTP')
+      setError(
+        err instanceof ApiError
+          ? (err.message || 'Invalid email, mobile number or date of birth')
+          : 'Failed to send OTP',
+      )
     } finally {
       setLoading(false)
     }
@@ -96,13 +103,19 @@ function ForgotView({ onSwitchLogin }) {
     setError('')
     setLoading(true)
     try {
-      const res = await authApi.resendForgotPasswordOtp(buildAccountPayload(account))
+      const payload = buildAccountPayload(account)
+      let res
+      try {
+        res = await authApi.resendForgotPasswordOtp(payload)
+      } catch {
+        res = await authApi.sendForgotPasswordOtp(payload)
+      }
       const meta = extractOtpMeta(res)
       setOtp('')
       if (meta.emailMasked) setEmailMasked(meta.emailMasked)
       if (meta.channel) setOtpChannel(meta.channel === 'sms' ? 'sms' : 'email')
       start(meta.expiresIn)
-      showToast(meta.message || 'OTP resent to your email')
+      showToast(meta.message || 'OTP resent to your email. Check inbox and spam.')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to resend OTP')
     } finally {
@@ -110,7 +123,8 @@ function ForgotView({ onSwitchLogin }) {
     }
   }
 
-  const onResetPassword = async (data) => {
+  const onVerifyOtp = async () => {
+    setError('')
     if (otp.length !== 6) {
       setError('Enter the 6-digit OTP')
       return
@@ -119,6 +133,23 @@ function ForgotView({ onSwitchLogin }) {
       setError('OTP has expired. Please request a new one.')
       return
     }
+    setLoading(true)
+    try {
+      await authApi.verifyForgotPasswordOtp({
+        ...buildAccountPayload(account),
+        otp,
+      })
+      resetForm.reset({ newPassword: '', confirmPassword: '' })
+      setStep('reset')
+      showToast('OTP verified. Set your new password.')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Invalid or expired OTP')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onResetPassword = async (data) => {
     if (data.newPassword.length < 6) {
       setError('Password must be at least 6 characters')
       return
@@ -131,13 +162,10 @@ function ForgotView({ onSwitchLogin }) {
     setLoading(true)
     try {
       await authApi.resetPassword({
-        email: account.email,
-        phone: account.phone,
-        date_of_birth: account.dateOfBirth,
+        ...buildAccountPayload(account),
         otp,
         password: data.newPassword,
         confirm_password: data.confirmPassword,
-        new_password: data.newPassword,
       })
       showToast('Password reset successful! Please sign in.')
       onSwitchLogin()
@@ -151,59 +179,98 @@ function ForgotView({ onSwitchLogin }) {
   if (step === 'otp') {
     return (
       <>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">
+            {error}
+          </div>
+        )}
         <OtpVerification
           channel={otpChannel}
           destinationLabel={emailMasked || account.email}
           otp={otp}
           onOtpChange={setOtp}
           seconds={seconds}
-          resendCooldown={resendCooldown}
+          resendData={resendCooldown}
           expired={expired}
           running={running}
-          error={error}
+          error=""
           loading={loading}
-          onSubmit={resetForm.handleSubmit(onResetPassword)}
+          onSubmit={onVerifyOtp}
           onResend={onResendOtp}
-          submitLabel="Reset Password"
-          loadingLabel="Resetting password..."
+          submitLabel="Verify OTP"
+          loadingLabel="Verifying..."
           onBack={() => { setStep('details'); setOtp(''); setError('') }}
           backLabel="← Back"
-        >
-          <div className="space-y-4">
-            <div>
-              <FormInput
-                label="New Password"
-                type="password"
-                icon={<Lock className="w-4 h-4" />}
-                placeholder="••••••••"
-                error={resetForm.formState.errors.newPassword?.message}
-                {...resetForm.register('newPassword', {
-                  required: 'Password is required',
-                  minLength: { value: 6, message: 'Minimum 6 characters' },
-                })}
-              />
-              <PasswordStrength password={watchPassword} />
-            </div>
+        />
+        <p className="mt-3 text-[11px] text-slate-400 text-center">
+          Check your inbox and spam folder for the 6-digit code.
+        </p>
+      </>
+    )
+  }
+
+  if (step === 'reset') {
+    return (
+      <>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        <form onSubmit={resetForm.handleSubmit(onResetPassword)} className="space-y-4">
+          <p className="text-xs text-slate-500 -mt-1">
+            Create a new password for <span className="font-semibold text-primary">{account.email}</span>
+          </p>
+          <div>
             <FormInput
-              label="Confirm Password"
+              label="New Password"
               type="password"
               icon={<Lock className="w-4 h-4" />}
               placeholder="••••••••"
-              error={resetForm.formState.errors.confirmPassword?.message}
-              {...resetForm.register('confirmPassword', { required: 'Please confirm password' })}
+              error={resetForm.formState.errors.newPassword?.message}
+              autoComplete="new-password"
+              {...resetForm.register('newPassword', {
+                required: 'Password is required',
+                minLength: { value: 6, message: 'Minimum 6 characters' },
+              })}
             />
+            <PasswordStrength password={watchPassword} />
           </div>
-        </OtpVerification>
+          <FormInput
+            label="Confirm Password"
+            type="password"
+            icon={<Lock className="w-4 h-4" />}
+            placeholder="••••••••"
+            error={resetForm.formState.errors.confirmPassword?.message}
+            autoComplete="new-password"
+            {...resetForm.register('confirmPassword', { required: 'Please confirm password' })}
+          />
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Resetting password...' : 'Change Password'}
+          </Button>
+          <button
+            type="button"
+            onClick={() => { setStep('otp'); setError('') }}
+            className="w-full text-sm text-secondary hover:underline"
+          >
+            ← Back to OTP
+          </button>
+        </form>
       </>
     )
   }
 
   return (
     <>
-      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">
+          {error}
+        </div>
+      )}
       <form onSubmit={detailsForm.handleSubmit(sendOtp)} className="space-y-4">
         <p className="text-xs text-slate-500 -mt-1">
-          We will email a one-time password to reset your account.
+          Enter the email, mobile number, and date of birth registered on your account.
+          We will email a 6-digit OTP.
         </p>
         <FormInput
           label="Email"
@@ -237,7 +304,7 @@ function ForgotView({ onSwitchLogin }) {
           {...detailsForm.register('dateOfBirth', { required: 'Date of birth is required' })}
         />
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Sending OTP...' : 'Send OTP via Email'}
+          {loading ? 'Sending OTP...' : 'Send OTP'}
         </Button>
         <button type="button" onClick={onSwitchLogin} className="w-full text-sm text-secondary hover:underline">
           ← Back to login
@@ -317,7 +384,7 @@ export default function AuthModal() {
   const titles = {
     login: { title: 'Welcome back', subtitle: 'Sign in with email, password, and email OTP' },
     register: { title: 'Create account', subtitle: 'Fill your details, then verify the OTP sent to your email' },
-    forgot: { title: 'Forgot password', subtitle: 'Verify your identity — we will email an OTP to reset your password' },
+    forgot: { title: 'Forgot password', subtitle: 'Verify identity → OTP → set a new password' },
   }
 
   const footers = {

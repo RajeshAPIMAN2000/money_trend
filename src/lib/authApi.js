@@ -32,9 +32,15 @@ export const authApi = {
   sendForgotPasswordOtp: (payload) =>
     request('/auth/forgot-password/send-otp', { method: 'POST', body: payload }),
 
+  /** POST /api/auth/forgot-password/verify-otp */
+  verifyForgotPasswordOtp: (payload) =>
+    request('/auth/forgot-password/verify-otp', { method: 'POST', body: payload }),
+
+  /** Optional resend — falls back to send-otp on the client if unused */
   resendForgotPasswordOtp: (payload) =>
     request('/auth/forgot-password/resend-otp', { method: 'POST', body: payload }),
 
+  /** POST /api/auth/forgot-password/reset */
   resetPassword: (payload) =>
     request('/auth/forgot-password/reset', { method: 'POST', body: payload }),
 }

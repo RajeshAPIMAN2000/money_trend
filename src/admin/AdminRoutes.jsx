@@ -24,6 +24,7 @@ import TransactionsPage from './pages/transactions/TransactionsPage.jsx'
 import NewsPage from './pages/content/NewsPage.jsx'
 import BlogsPage from './pages/content/BlogsPage.jsx'
 import BannersPage from './pages/content/BannersPage.jsx'
+import AdminTestimonialsPage from './pages/content/AdminTestimonialsPage.jsx'
 import SeoManagementPage from './pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './pages/credit/AdminCreditChecksPage.jsx'
 import AdminSupportPage from './pages/support/AdminSupportPage.jsx'
@@ -66,6 +67,7 @@ export function AdminRouteTree() {
         <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
         <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
         <Route path="banners" element={<BannersPage />} />
+        <Route path="testimonials" element={<AdminTestimonialsPage />} />
         <Route path="credit-checks" element={<AdminCreditChecksPage />} />
         <Route path="support" element={<AdminSupportPage />} />
         <Route path="settings" element={<SettingsPage />} />

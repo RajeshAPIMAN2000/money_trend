@@ -24,7 +24,7 @@ export default function LoginView({ onSwitchForgot, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [otp, setOtp] = useState('')
   const [credentials, setCredentials] = useState({ email: '', password: '' })
-  const { seconds, resendData, start, expired, running } = useOtpCountdown(step === 'otp')
+  const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
 
   const form = useForm({ defaultValues: { email: '', password: '' } })
 
@@ -96,7 +96,7 @@ export default function LoginView({ onSwitchForgot, onSuccess }) {
           otp={otp}
           onOtpChange={setOtp}
           seconds={seconds}
-          resendData={resendData}
+          resendData={resendCooldown}
           expired={expired}
           running={running}
           error=""

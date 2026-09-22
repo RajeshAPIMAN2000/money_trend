@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import CivilScoreChecker from './CivilScoreChecker.jsx'
+import TestimonialsSection, { TestimonialsSidebarCard } from './TestimonialsSection.jsx'
 import BlurText from '../react-bits/BlurText.jsx'
 import SlideInContent from '../react-bits/SlideInContent.jsx'
 import { HIDDEN_HOME_PRODUCTS } from '../../lib/home.js'
@@ -921,27 +922,7 @@ function NewsBlogSection() {
           </Link>
         </div>
 
-        <SectionCard className="p-6">
-          <h3 className="font-display font-bold text-[#0F172A] text-base mb-4">What Our Investors Say</h3>
-          <span className="text-5xl text-blue-200 font-serif leading-none select-none">&ldquo;</span>
-          <p className="text-sm text-slate-600 leading-relaxed font-medium -mt-2">
-            Fintech Demo made investing effortless. The dashboard and goal tracking helped me stay disciplined and on track.
-          </p>
-          <div className="flex items-center gap-3 mt-5 pt-4 border-t border-slate-100">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#0056D2] to-teal-500 text-white text-xs font-bold grid place-items-center shadow-md">
-              RM
-            </div>
-            <div>
-              <div className="text-sm font-bold text-[#0F172A]">Rohan Mehta</div>
-              <div className="text-xs text-slate-500 font-medium">Mumbai, India</div>
-            </div>
-          </div>
-          <div className="flex justify-center gap-2 mt-5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#0056D2]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-          </div>
-        </SectionCard>
+        <TestimonialsSidebarCard />
       </div>
     </section>
   )
@@ -1015,6 +996,9 @@ export default function HomeMiddleSections({
         </SlideInContent>
         <SlideInContent direction="left" duration={0.7}>
           <NewsBlogSection />
+        </SlideInContent>
+        <SlideInContent direction="up" delay={0.08} duration={0.65}>
+          <TestimonialsSection />
         </SlideInContent>
         <SlideInContent direction="up" delay={0.1} duration={0.6}>
           <TrustBar trustStats={trustStats} loading={loading} />

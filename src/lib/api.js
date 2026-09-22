@@ -463,6 +463,37 @@ export const api = {
   getMySupportTicket: (id) =>
     request(`/support/${encodeURIComponent(id)}`),
 
+  // Testimonials — public / user (Bearer user token on create)
+  getTestimonials: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/testimonials${qs ? `?${qs}` : ''}`, { skipAuth: true })
+  },
+  /** POST /api/testimonials — { rating: 1–5, description: min 10 chars } — requires user Bearer token */
+  createTestimonial: (body) =>
+    request('/testimonials', { method: 'POST', body }),
+  /** GET /api/testimonials/me — current user's submitted review(s), if any */
+  getMyTestimonials: () => request('/testimonials/me'),
+
+  // Visitors — device-based visit counter
+  recordVisitorHit: (body) =>
+    request('/visitors', { method: 'POST', body, skipAuth: true }),
+  getVisitorStats: () => request('/visitors', { skipAuth: true }),
+
+  // Testimonials — admin (Bearer admin token)
+  getAdminTestimonials: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    if (params.status) q.set('status', String(params.status))
+    const qs = q.toString()
+    return request(`/admin/testimonials${qs ? `?${qs}` : ''}`, { admin: true })
+  },
+  deleteAdminTestimonial: (id) =>
+    request(`/admin/testimonials/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
+
   // Support — admin
   getAdminSupportTickets: (params = {}) => {
     const q = new URLSearchParams()

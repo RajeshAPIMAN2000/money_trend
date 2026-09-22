@@ -3,7 +3,7 @@ import {
   TrendingUp, PieChart, Landmark, RefreshCw, Repeat, Briefcase,
   ArrowDownToLine, ArrowUpFromLine, ShoppingCart, History,
   BarChart3, LineChart, Gem, Bitcoin,
-  Newspaper, BookOpen, Image, FileText, Search,
+  Newspaper, BookOpen, Image, FileText, Search, MessageSquareQuote,
   Bell, Mail, MessageSquare,
   FileBarChart, Download, Settings, CreditCard, ScrollText, Server,
 } from 'lucide-react'
@@ -51,6 +51,7 @@ export const adminNav = [
       { label: 'Blogs', path: '/admin/blogs', icon: BookOpen },
       { label: 'SEO Management', path: '/admin/seo', icon: Search },
       { label: 'Banners', path: '/admin/banners', icon: Image },
+      { label: 'Testimonials', path: '/admin/testimonials', icon: MessageSquareQuote },
     ],
   },
   {

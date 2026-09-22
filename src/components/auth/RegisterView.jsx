@@ -26,7 +26,7 @@ export default function RegisterView({ onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [otp, setOtp] = useState('')
   const [formData, setFormData] = useState(null)
-  const { seconds, resendData, start, expired, running } = useOtpCountdown(step === 'otp')
+  const { seconds, resendCooldown, start, expired, running } = useOtpCountdown(step === 'otp')
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
@@ -149,7 +149,7 @@ export default function RegisterView({ onSuccess }) {
           otp={otp}
           onOtpChange={setOtp}
           seconds={seconds}
-          resendData={resendData}
+          resendData={resendCooldown}
           expired={expired}
           running={running}
           error=""
