@@ -5,9 +5,16 @@ import {
   useAdminBlogMutations,
 } from '../../hooks/useAdminContent.js'
 
-export default createContentArticlesPage({
+const blogOpts = {
   type: 'blog',
   useList: useAdminBlogs,
   useItem: useAdminBlog,
   useMutations: useAdminBlogMutations,
+}
+
+export default createContentArticlesPage(blogOpts)
+
+export const EmbeddedBlogsPanel = createContentArticlesPage({
+  ...blogOpts,
+  embedded: true,
 })

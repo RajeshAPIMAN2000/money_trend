@@ -1,10 +1,10 @@
 import {
   LayoutDashboard, Users, ShieldCheck, UserCog, Target,
-  TrendingUp, PieChart, Landmark, RefreshCw, Repeat, Briefcase,
+  TrendingUp, Landmark, RefreshCw, Briefcase,
   ArrowDownToLine, ArrowUpFromLine, ShoppingCart, History,
-  BarChart3, LineChart, Gem, Bitcoin,
-  Newspaper, BookOpen, Image, FileText, Search, MessageSquareQuote,
-  Bell, Mail, MessageSquare,
+  BarChart3,
+  Newspaper, BookOpen, Image, FileText, Search, MessageSquareQuote, PenLine,
+  Bell, Mail, MessageSquare, Ticket,
   FileBarChart, Download, Settings, CreditCard, ScrollText, Server,
 } from 'lucide-react'
 
@@ -20,7 +20,7 @@ export const adminNav = [
     children: [
       { label: 'Users', path: '/admin/users', icon: Users },
       { label: 'Goals', path: '/admin/goals', icon: Target },
-      { label: 'Sub Admins', path: '/admin/sub-admins', icon: UserCog },
+      { label: 'Employees', path: '/admin/sub-admins', icon: UserCog },
       { label: 'KYC Verification', path: '/admin/kyc', icon: ShieldCheck },
     ],
   },
@@ -49,6 +49,7 @@ export const adminNav = [
     children: [
       { label: 'News', path: '/admin/news', icon: Newspaper },
       { label: 'Blogs', path: '/admin/blogs', icon: BookOpen },
+      { label: 'Content Creator', path: '/admin/content-creator', icon: PenLine },
       { label: 'SEO Management', path: '/admin/seo', icon: Search },
       { label: 'Banners', path: '/admin/banners', icon: Image },
       { label: 'Testimonials', path: '/admin/testimonials', icon: MessageSquareQuote },
@@ -58,7 +59,7 @@ export const adminNav = [
     label: 'Communication',
     icon: Bell,
     children: [
-      { label: 'Support Tickets', path: '/admin/support', icon: MessageSquare },
+      { label: 'Ticket Raised', path: '/admin/support', icon: Ticket },
       { label: 'Notifications', path: '/admin/notifications', icon: Bell },
       { label: 'Email Templates', path: '/admin/email-templates', icon: Mail },
       { label: 'SMS / WhatsApp', path: '/admin/sms', icon: MessageSquare },

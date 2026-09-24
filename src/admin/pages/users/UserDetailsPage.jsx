@@ -185,9 +185,61 @@ export default function UserDetailsPage() {
                 </div>
               ))}
             </dl>
+            {(user.kyc.panImage || user.kyc.aadhaarImage) && (
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                {user.kyc.panImage && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">PAN image</p>
+                    <img src={user.kyc.panImage} alt="PAN" className="w-full max-h-48 object-contain rounded-xl border border-slate-200 bg-white" />
+                  </div>
+                )}
+                {user.kyc.aadhaarImage && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Aadhaar image</p>
+                    <img src={user.kyc.aadhaarImage} alt="Aadhaar" className="w-full max-h-48 object-contain rounded-xl border border-slate-200 bg-white" />
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
+
+      <Card className="mt-6">
+        <CardHeader><CardTitle>Nominee</CardTitle></CardHeader>
+        <CardContent>
+          {user.nominee?.added ? (
+            <dl className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+              {[
+                ['Name', user.nominee.name],
+                ['Relationship', user.nominee.relationship],
+                ['Date of birth', user.nominee.dob],
+                ['Mobile', user.nominee.phone],
+                ['Email', user.nominee.email],
+                ['Allocation %', user.nominee.allocationPercent],
+                ['PAN', user.nominee.panNumber],
+                ['Aadhaar', user.nominee.aadhaarNumber],
+                ['Address', user.nominee.address],
+                ...(user.nominee.isMinor || user.nominee.guardianName
+                  ? [
+                    ['Guardian', user.nominee.guardianName],
+                    ['Guardian relationship', user.nominee.guardianRelationship],
+                  ]
+                  : []),
+              ].map(([label, val]) => (
+                <div key={label} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                  <dt className="text-xs text-slate-500">{label}</dt>
+                  <dd className="font-semibold text-slate-900 dark:text-white mt-0.5 break-words">{val || '—'}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-sm text-slate-500 text-center py-4">
+              {user.nominee?.message || 'Nominee not added'}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <GoalsSection userId={id} embeddedGoals={user.goals} />
     </PageShell>

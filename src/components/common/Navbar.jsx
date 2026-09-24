@@ -11,6 +11,7 @@ import { initialsFromName } from '../../lib/userProfile.js'
 import { cn } from '../../lib/utils.js'
 import { CUSTOMER_CARE_DISPLAY, CUSTOMER_CARE_TEL } from '../../lib/company.js'
 import MoneyTrendLogo from './MoneyTrendLogo.jsx'
+import NotificationBell from '../notifications/NotificationBell.jsx'
 
 const PUBLIC_NAV_LINKS = [
   { to: '/', label: 'Home', end: true },
@@ -55,6 +56,10 @@ function UserMenu({ onNavigate, className }) {
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
+      <NotificationBell
+        variant="user"
+        buttonClassName="text-ink hover:text-secondary hover:bg-slate-100"
+      />
       <div className="relative" ref={ref}>
         <button
           type="button"

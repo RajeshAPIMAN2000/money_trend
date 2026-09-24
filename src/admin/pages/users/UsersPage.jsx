@@ -7,12 +7,14 @@ import DataTable from '../../components/shared/DataTable.jsx'
 import AdminModal from '../../components/shared/AdminModal.jsx'
 import AdminButton from '../../components/ui/AdminButton.jsx'
 import KycReviewModal from '../../components/kyc/KycReviewModal.jsx'
+import AdminAddUserModal from '../../components/users/AdminAddUserModal.jsx'
 import { useAdminUsers } from '../../hooks/useAdminUsers.js'
 import { api, ApiError } from '../../../lib/api.js'
 import { mapUserToTableRow, computeUserStats, canReviewKyc } from '../../../lib/adminUsers.js'
 
 export default function UsersPage() {
   const queryClient = useQueryClient()
+  const [addOpen, setAddOpen] = useState(false)
   const [viewUser, setViewUser] = useState(null)
   const [actionUser, setActionUser] = useState(null)
   const [rejectOpen, setRejectOpen] = useState(false)
@@ -69,9 +71,9 @@ export default function UsersPage() {
         { label: 'Rejected KYC', value: String(stats.rejectedKyc) },
       ]}
       actions={
-        <Link to="/admin/users/add">
-          <AdminButton size="sm"><Plus className="w-4 h-4" /> Add User</AdminButton>
-        </Link>
+        <AdminButton size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="w-4 h-4" /> Add User
+        </AdminButton>
       }
     >
       {error && (
@@ -170,6 +172,14 @@ export default function UsersPage() {
           <img src={zoomImage} alt="Document" className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+
+      <AdminAddUserModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+        }}
+      />
     </PageShell>
   )
 }

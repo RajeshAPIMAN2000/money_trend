@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowUpRight, BookOpen, LogOut, Newspaper, Search } from 'lucide-react'
+import { ArrowUpRight, LogOut, PenLine, Search, Ticket } from 'lucide-react'
 import PageShell from '../components/shared/PageShell.jsx'
 import AdminButton from '../components/ui/AdminButton.jsx'
 import { Card, CardContent } from '../components/ui/AdminCard.jsx'
@@ -13,8 +13,8 @@ import {
 
 const ICONS = {
   seo: Search,
-  blogs: BookOpen,
-  news: Newspaper,
+  content_creator: PenLine,
+  support: Ticket,
 }
 
 /**
@@ -59,7 +59,7 @@ export default function SubAdminDashboard() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-sm text-slate-600">
-              No modules are assigned to your account yet. Ask a Super Admin to grant SEO, Blog, or News access.
+              No modules are assigned to your account yet. Ask a Super Admin to grant SEO, Content Creator, or Ticket Raised access.
             </p>
             <AdminButton type="button" className="mt-4" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />

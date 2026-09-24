@@ -54,7 +54,6 @@ export default function AdminTestimonialsPage() {
     <PageShell
       title="Testimonials"
       breadcrumb={['Home', 'Content Management', 'Testimonials']}
-      description="Customer reviews from POST /testimonials. Delete removes them from the home page."
       stats={isFetched ? (data?.stats ?? []) : []}
     >
       {error && (

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getPageBanner } from '../data/page-banners.js'
 import PageBanner from '../components/common/PageBanner.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -12,9 +12,10 @@ import { useToast } from '../context/ToastContext.jsx'
 import {
   useSupportHelp,
   useMySupportTickets,
+  useMySupportTicket,
   useSubmitSupportTicket,
 } from '../hooks/useSupport.js'
-import { SUPPORT_SUBJECTS, supportStatusBadgeTone } from '../lib/support.js'
+import { SUPPORT_SUBJECTS, SUPPORT_STATUSES, supportStatusBadgeTone, supportStatusLabel } from '../lib/support.js'
 
 const FALLBACK_METRICS = [
   ['2 hrs', 'Avg response'],
@@ -45,7 +46,20 @@ export default function Support() {
   const [description, setDescription] = useState('')
   const [attachment, setAttachment] = useState(null)
   const [faqQuery, setFaqQuery] = useState('')
-  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
+
+  const { data: detailTicket, isLoading: detailLoading } = useMySupportTicket(selectedId)
+  const listTicket = ticketsData?.tickets?.find((t) => String(t.id) === String(selectedId))
+  const selectedTicket = detailTicket || listTicket || null
+
+  useEffect(() => {
+    if (!selectedId) return undefined
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSelectedId(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedId])
 
   const subjects = help?.subjects?.length ? help.subjects : SUPPORT_SUBJECTS
   const metrics = help?.metrics?.length ? help.metrics : FALLBACK_METRICS
@@ -68,7 +82,7 @@ export default function Support() {
     }
     try {
       await submitMutation.mutateAsync({ subject, description, attachment })
-      showToast('Ticket submitted — we emailed info@moneytrend.in', 'success')
+      showToast('Ticket submitted — we will update you as it progresses', 'success')
       setSubject('')
       setDescription('')
       setAttachment(null)
@@ -182,10 +196,10 @@ export default function Support() {
                   onChange={(e) => setTicketStatus(e.target.value)}
                   className="px-3 py-2 text-sm border border-slate-300 rounded-btn bg-white"
                 >
-                  <option value="">All statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="in_process">In Process</option>
-                  <option value="fixed">Fixed</option>
+                  <option value="">All stages</option>
+                  {SUPPORT_STATUSES.map((s) => (
+                    <option key={s} value={s}>{supportStatusLabel(s)}</option>
+                  ))}
                 </select>
               )}
             </div>
@@ -209,7 +223,7 @@ export default function Support() {
                   <button
                     key={ticket.id}
                     type="button"
-                    onClick={() => setSelectedTicket(ticket)}
+                    onClick={() => setSelectedId(ticket.id)}
                     className="w-full text-left"
                   >
                     <Card className="hover:border-secondary/40 transition-colors">
@@ -218,6 +232,11 @@ export default function Support() {
                           <div className="text-xs text-slate-400 font-mono">{ticket.ticketNumber}</div>
                           <div className="font-semibold text-primary mt-0.5">{ticket.subject}</div>
                           <p className="text-sm text-slate-500 mt-1 line-clamp-2">{ticket.description}</p>
+                          {ticket.reply && (
+                            <p className="text-sm text-secondary mt-2 line-clamp-1">
+                              Support: {ticket.reply}
+                            </p>
+                          )}
                         </div>
                         <Badge tone={supportStatusBadgeTone(ticket.status)}>{ticket.statusLabel}</Badge>
                       </div>
@@ -231,44 +250,86 @@ export default function Support() {
         </div>
       </PageSideLayout>
 
-      {selectedTicket && (
+      {selectedId && (
         <div
           className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4"
-          onClick={() => setSelectedTicket(null)}
+          onClick={() => setSelectedId(null)}
         >
           <div
             className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div>
-                <div className="text-xs text-slate-400 font-mono">{selectedTicket.ticketNumber}</div>
-                <h3 className="font-display font-bold text-xl text-primary">{selectedTicket.subject}</h3>
-              </div>
-              <Badge tone={supportStatusBadgeTone(selectedTicket.status)}>{selectedTicket.statusLabel}</Badge>
-            </div>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedTicket.description}</p>
-            {selectedTicket.attachment && (
-              <a
-                href={selectedTicket.attachment}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block mt-3 text-sm text-secondary font-semibold hover:underline"
-              >
-                View attachment
-              </a>
+            {detailLoading && !selectedTicket ? (
+              <p className="text-sm text-slate-500 py-8 text-center">Loading ticket…</p>
+            ) : selectedTicket ? (
+              <>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div>
+                    <div className="text-xs text-slate-400 font-mono">{selectedTicket.ticketNumber}</div>
+                    <h3 className="font-display font-bold text-xl text-primary">{selectedTicket.subject}</h3>
+                  </div>
+                  <Badge tone={supportStatusBadgeTone(selectedTicket.status)}>
+                    {selectedTicket.statusLabel}
+                  </Badge>
+                </div>
+
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Stage: {selectedTicket.statusLabel}
+                </div>
+
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedTicket.description}</p>
+                {selectedTicket.attachment && (
+                  <a
+                    href={selectedTicket.attachment}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-block mt-3 text-sm text-secondary font-semibold hover:underline"
+                  >
+                    View attachment
+                  </a>
+                )}
+
+                {selectedTicket.replies?.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Support reply
+                    </div>
+                    {selectedTicket.replies.map((r, i) => (
+                      <div
+                        key={`${r.createdAt}-${i}`}
+                        className="p-3 rounded-xl bg-secondary/5 border border-secondary/15"
+                      >
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{r.text}</p>
+                        <div className="mt-1 text-xs text-slate-400">{r.createdAtLabel}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : selectedTicket.reply ? (
+                  <div className="mt-4 p-3 rounded-xl bg-secondary/5 border border-secondary/15">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      Support reply
+                    </div>
+                    <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{selectedTicket.reply}</p>
+                  </div>
+                ) : null}
+
+                {selectedTicket.adminNote && (
+                  <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Note</div>
+                    <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{selectedTicket.adminNote}</p>
+                  </div>
+                )}
+
+                <div className="mt-4 text-xs text-slate-400 space-y-1">
+                  <div>Created: {selectedTicket.createdAtLabel}</div>
+                  <div>Updated: {selectedTicket.updatedAtLabel}</div>
+                  {selectedTicket.resolvedAt && <div>Resolved: {selectedTicket.resolvedAtLabel}</div>}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-slate-500 py-8 text-center">Ticket not found.</p>
             )}
-            {selectedTicket.adminNote && (
-              <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Admin note</div>
-                <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{selectedTicket.adminNote}</p>
-              </div>
-            )}
-            <div className="mt-4 text-xs text-slate-400 space-y-1">
-              <div>Created: {selectedTicket.createdAtLabel}</div>
-              {selectedTicket.resolvedAt && <div>Resolved: {selectedTicket.resolvedAtLabel}</div>}
-            </div>
-            <Button type="button" className="w-full mt-5" variant="outline" onClick={() => setSelectedTicket(null)}>
+            <Button type="button" className="w-full mt-5" variant="outline" onClick={() => setSelectedId(null)}>
               Close
             </Button>
           </div>

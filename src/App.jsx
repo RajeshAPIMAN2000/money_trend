@@ -11,6 +11,7 @@ import News from './pages/News.jsx'
 import Goals from './pages/Goals.jsx'
 import Calculators from './pages/Calculators.jsx'
 import Support from './pages/Support.jsx'
+import Notifications from './pages/Notifications.jsx'
 import KYC from './pages/KYC.jsx'
 import Profile from './pages/Profile.jsx'
 import Blog from './pages/Blog.jsx'
@@ -59,6 +60,9 @@ import BannersPage from './admin/pages/content/BannersPage.jsx'
 import AdminTestimonialsPage from './admin/pages/content/AdminTestimonialsPage.jsx'
 import SeoManagementPage from './admin/pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './admin/pages/credit/AdminCreditChecksPage.jsx'
+import AdminSupportPage from './admin/pages/support/AdminSupportPage.jsx'
+import ContentCreatorPage from './admin/pages/content/ContentCreatorPage.jsx'
+import AdminNotificationsPage from './admin/pages/notifications/AdminNotificationsPage.jsx'
 import SettingsPage from './admin/pages/settings/SettingsPage.jsx'
 import CreditScorePage from './pages/CreditScorePage.jsx'
 import CreditScoreHistoryPage from './pages/CreditScoreHistoryPage.jsx'
@@ -96,6 +100,7 @@ function PublicApp() {
           <Route path="/goals" element={<Goals />} />
           <Route path="/calculators" element={<Calculators />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/kyc" element={<KYC />} />
           <Route path="/profile" element={<UserRequireAuth><Profile /></UserRequireAuth>} />
           <Route path="/blog" element={<Blog />} />
@@ -167,10 +172,13 @@ export default function App() {
             <Route path="transactions" element={<TransactionsPage />} />
             <Route path="news" element={<RequirePermission permission="news"><NewsPage /></RequirePermission>} />
             <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
+            <Route path="content-creator" element={<RequirePermission permission="content_creator"><ContentCreatorPage /></RequirePermission>} />
             <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
             <Route path="banners" element={<BannersPage />} />
             <Route path="testimonials" element={<AdminTestimonialsPage />} />
             <Route path="credit-checks" element={<AdminCreditChecksPage />} />
+            <Route path="support" element={<RequirePermission permission="support"><AdminSupportPage /></RequirePermission>} />
+            <Route path="notifications" element={<AdminNotificationsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="change-password" element={<ChangePasswordPage />} />

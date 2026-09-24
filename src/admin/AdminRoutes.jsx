@@ -28,6 +28,8 @@ import AdminTestimonialsPage from './pages/content/AdminTestimonialsPage.jsx'
 import SeoManagementPage from './pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './pages/credit/AdminCreditChecksPage.jsx'
 import AdminSupportPage from './pages/support/AdminSupportPage.jsx'
+import ContentCreatorPage from './pages/content/ContentCreatorPage.jsx'
+import AdminNotificationsPage from './pages/notifications/AdminNotificationsPage.jsx'
 import SettingsPage from './pages/settings/SettingsPage.jsx'
 import { ProfilePage, ChangePasswordPage } from './pages/profile/ProfilePages.jsx'
 import { moduleRegistry } from './data/moduleRegistry.js'
@@ -65,11 +67,13 @@ export function AdminRouteTree() {
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="news" element={<RequirePermission permission="news"><NewsPage /></RequirePermission>} />
         <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
+        <Route path="content-creator" element={<RequirePermission permission="content_creator"><ContentCreatorPage /></RequirePermission>} />
         <Route path="seo" element={<RequirePermission permission="seo"><SeoManagementPage /></RequirePermission>} />
         <Route path="banners" element={<BannersPage />} />
         <Route path="testimonials" element={<AdminTestimonialsPage />} />
         <Route path="credit-checks" element={<AdminCreditChecksPage />} />
-        <Route path="support" element={<AdminSupportPage />} />
+        <Route path="support" element={<RequirePermission permission="support"><AdminSupportPage /></RequirePermission>} />
+        <Route path="notifications" element={<AdminNotificationsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />

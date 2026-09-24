@@ -13,20 +13,20 @@ import { isSuperAdmin } from '../../data/admin-roles.js'
 
 const CONFIG = {
   news: {
-    title: 'News Management',
+    title: 'News',
     breadcrumb: ['Home', 'Content Management', 'News'],
-    description: 'Sub Admin posts go Pending. Admin approves to publish or rejects with a reason.',
+    description: 'Manage news articles. Employee posts go Pending until Admin approves. Use rich text for heading and description. SEO is managed separately.',
     filters: ['Pending', 'Published', 'Rejected', 'Draft'],
   },
   blog: {
-    title: 'Blog Management',
+    title: 'Blogs',
     breadcrumb: ['Home', 'Content Management', 'Blogs'],
-    description: 'Sub Admin posts go Pending. Admin approves to publish or rejects with a reason.',
+    description: 'Manage blog posts. Employee posts go Pending until Admin approves. Use rich text for heading and description. SEO is managed separately.',
     filters: ['Pending', 'Published', 'Rejected', 'Draft'],
   },
 }
 
-export function createContentArticlesPage({ type, useList, useItem, useMutations }) {
+export function createContentArticlesPage({ type, useList, useItem, useMutations, embedded = false }) {
   const config = { ...CONFIG[type], useList, useItem, useMutations }
 
   return function ContentArticlesPage() {
@@ -124,13 +124,8 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
 
     const moderating = approve?.isPending || reject?.isPending
 
-    return (
-      <PageShell
-        title={config.title}
-        breadcrumb={config.breadcrumb}
-        description={config.description}
-        stats={isFetched ? (data?.stats ?? []) : []}
-      >
+    const body = (
+      <>
         {error && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
             {error.message || 'Failed to load articles'}
@@ -146,7 +141,7 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
           loading={isLoading}
           columns={[
             { key: 'image', label: 'Image' },
-            { key: 'title', label: 'Title' },
+            { key: 'title', label: 'Heading' },
             { key: 'category', label: 'Category' },
             { key: 'author', label: 'Author' },
             { key: 'published', label: 'Submitted' },
@@ -253,8 +248,8 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
           onClose={() => { setCreateOpen(false); setFormError('') }}
           title={isSub ? 'Submit Article' : 'Create Article'}
           description={isSub
-            ? 'Submitted as Pending — Admin must approve before it goes public'
-            : 'Add a new article with image upload'}
+            ? 'Submitted as Pending — Admin must approve before it goes public. SEO is managed separately.'
+            : 'Add a new article with rich-text heading & description. SEO is managed separately.'}
           onSubmit={handleCreate}
           submitting={create.isPending}
           error={formError}
@@ -281,7 +276,7 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
           open={Boolean(rejectTarget)}
           onClose={() => { setRejectTarget(null); setRejectReason(''); setActionError('') }}
           title="Reject Article"
-          description="Provide a reason so the Sub Admin can fix and resubmit."
+          description="Provide a reason so the employee can fix and resubmit."
           footer={(
             <>
               <AdminButton
@@ -339,6 +334,21 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
             Are you sure you want to delete <strong>{deleteTarget?.title}</strong>?
           </p>
         </AdminModal>
+      </>
+    )
+
+    if (embedded) {
+      return <div className="space-y-4">{body}</div>
+    }
+
+    return (
+      <PageShell
+        title={config.title}
+        breadcrumb={config.breadcrumb}
+        description={config.description}
+        stats={isFetched ? (data?.stats ?? []) : []}
+      >
+        {body}
       </PageShell>
     )
   }

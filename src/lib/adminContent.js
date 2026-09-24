@@ -1,4 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
+import { stripHtml } from './html.js'
 
 const unwrap = (payload) => payload?.data ?? payload ?? {}
 
@@ -33,7 +34,7 @@ function itemKey(type) {
 
 function mapAdminArticleRow(item) {
   const status = item.status ?? item.status_label ?? 'draft'
-  const title = item.title ?? item.heading ?? item.name ?? ''
+  const rawTitle = item.title ?? item.heading ?? item.name ?? ''
   const category = item.category
     ?? item.category_name
     ?? item.cat
@@ -41,10 +42,13 @@ function mapAdminArticleRow(item) {
     ?? null
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
   const statusValue = String(status).toLowerCase()
+  const description = item.description ?? item.excerpt ?? item.summary ?? ''
+  const content = item.content ?? item.body ?? ''
 
   return {
     id: item.id,
-    title,
+    title: stripHtml(rawTitle) || 'Untitled',
+    titleHtml: rawTitle,
     category: category && String(category).trim() ? String(category) : '—',
     author: extractAuthorName(item, 'MoneyTrend'),
     published: formatDateTime(item.published_at ?? item.submitted_at ?? item.created_at ?? item.updated_at),
@@ -54,8 +58,9 @@ function mapAdminArticleRow(item) {
     statusValue,
     rejectionReason: item.rejection_reason ?? item.rejectionReason ?? item.reason ?? null,
     reviewedBy: item.reviewed_by_name ?? item.reviewed_by ?? item.reviewedBy ?? null,
-    description: item.description ?? item.excerpt ?? item.summary ?? '',
-    content: item.content ?? item.body ?? item.description ?? '',
+    description,
+    descriptionPlain: stripHtml(description),
+    content,
     image: resolveMediaUrl(extractImagePath(item), { cacheKey: updatedAt }),
     updatedAt,
     raw: item,
@@ -97,11 +102,13 @@ export function parseAdminArticleDetail(payload, type = 'news') {
 
 export function buildArticleFormData(fields, { isSubAdmin = false } = {}) {
   const fd = new FormData()
-  const title = fields.title ?? fields.heading ?? ''
+  const title = String(fields.title ?? fields.heading ?? '').trim()
+  const description = fields.description ?? ''
   fd.append('title', title)
   fd.append('heading', title)
-  fd.append('description', fields.description ?? '')
-  fd.append('content', fields.content ?? fields.description ?? '')
+  fd.append('description', description)
+  // No separate content field — description is the body
+  fd.append('content', description)
   fd.append('category', fields.category ?? '')
 
   // Sub Admin posts always go pending; Admin may set draft/published
@@ -139,10 +146,13 @@ export const EMPTY_ARTICLE_FORM = {
 export function articleToForm(item) {
   if (!item) return { ...EMPTY_ARTICLE_FORM }
   const rejected = item.statusValue === 'rejected'
+  const plainTitle = item.titleHtml && /<[a-z]/i.test(item.titleHtml)
+    ? String(item.title || '').trim()
+    : String(item.titleHtml ?? item.title ?? item.heading ?? '').trim()
   return {
-    title: item.title ?? item.heading ?? '',
+    title: plainTitle,
     description: item.description ?? '',
-    content: item.content ?? '',
+    content: '',
     category: item.category === '—' ? '' : (item.category ?? ''),
     status: item.statusValue ?? 'draft',
     resubmit: rejected,

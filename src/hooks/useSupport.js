@@ -4,7 +4,11 @@ import {
   parseSupportHelp,
   parseSupportTicketsList,
   parseSupportTicketDetail,
+  parseSupportAgents,
   buildSupportTicketFormData,
+  buildSupportStatusBody,
+  buildSupportReplyBody,
+  buildSupportAssignBody,
 } from '../lib/support.js'
 
 export function useSupportHelp() {
@@ -58,14 +62,63 @@ export function useAdminSupportTicket(id) {
   })
 }
 
+export function useAdminSupportAgents(enabled = true) {
+  return useQuery({
+    queryKey: ['admin', 'support', 'agents'],
+    queryFn: async () => parseSupportAgents(await api.getAdminSupportAgents()),
+    enabled,
+    refetchInterval: 30_000,
+  })
+}
+
 export function useUpdateAdminSupportStatus() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status, adminNote }) => {
-      const res = await api.updateAdminSupportTicketStatus(id, {
-        status,
-        admin_note: adminNote || '',
-      })
+      const res = await api.updateAdminSupportTicketStatus(
+        id,
+        buildSupportStatusBody({ status, adminNote }),
+      )
+      return parseSupportTicketDetail(res)
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'support'] })
+      if (vars?.id) {
+        queryClient.invalidateQueries({ queryKey: ['admin', 'support', vars.id] })
+      }
+    },
+  })
+}
+
+export function useReplyAdminSupportTicket() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, reply, status, adminNote }) => {
+      const res = await api.replyAdminSupportTicket(
+        id,
+        buildSupportReplyBody({ reply, status, adminNote }),
+      )
+      return parseSupportTicketDetail(res)
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'support'] })
+      queryClient.invalidateQueries({ queryKey: ['support', 'my-tickets'] })
+      if (vars?.id) {
+        queryClient.invalidateQueries({ queryKey: ['admin', 'support', vars.id] })
+        queryClient.invalidateQueries({ queryKey: ['support', 'my-ticket', vars.id] })
+      }
+    },
+  })
+}
+
+export function useAssignAdminSupportTicket() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, assignedTo }) => {
+      const res = await api.assignAdminSupportTicket(
+        id,
+        buildSupportAssignBody({ assignedTo }),
+      )
       return parseSupportTicketDetail(res)
     },
     onSuccess: (_data, vars) => {

@@ -93,6 +93,16 @@ export const api = {
   updateUserKycStatus: (id, body) =>
     request(`/admin/users/${encodeURIComponent(id)}/kyc-status`, { method: 'PATCH', body, admin: true }),
 
+  /** Admin create-user flow (same payloads as register + KYC + nominee) */
+  sendAdminUserEmailOtp: (body) =>
+    request('/admin/users/send-email-otp', { method: 'POST', body, admin: true }),
+  createAdminUser: (body) =>
+    request('/admin/users', { method: 'POST', body, admin: true }),
+  submitAdminUserKyc: (id, formData) =>
+    request(`/admin/users/${encodeURIComponent(id)}/kyc`, { method: 'POST', body: formData, admin: true }),
+  submitAdminUserNominee: (id, formData) =>
+    request(`/admin/users/${encodeURIComponent(id)}/nominee`, { method: 'POST', body: formData, admin: true }),
+
   // Sub-admins (created by Super Admin — email, password, phone, roles)
   getAdminSubAdmins: () => request('/admin/sub-admins', { admin: true }),
   getAdminSubAdmin: (id) =>
@@ -494,11 +504,48 @@ export const api = {
   deleteAdminTestimonial: (id) =>
     request(`/admin/testimonials/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
 
+  // Notifications — end user (Bearer user token)
+  getNotifications: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.unread === true || params.unread === 1 || params.unread === '1') q.set('unread', '1')
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/notifications${qs ? `?${qs}` : ''}`)
+  },
+  getNotificationsUnreadCount: () => request('/notifications/unread-count'),
+  markNotificationRead: (id) =>
+    request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: () =>
+    request('/notifications/read-all', { method: 'POST' }),
+
+  // Notifications — admin / support / content (Bearer admin token)
+  getAdminNotifications: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.unread === true || params.unread === 1 || params.unread === '1') q.set('unread', '1')
+    if (params.limit != null) q.set('limit', String(params.limit))
+    if (params.offset != null) q.set('offset', String(params.offset))
+    const qs = q.toString()
+    return request(`/admin/notifications${qs ? `?${qs}` : ''}`, { admin: true })
+  },
+  getAdminNotificationsUnreadCount: () =>
+    request('/admin/notifications/unread-count', { admin: true }),
+  markAdminNotificationRead: (id) =>
+    request(`/admin/notifications/${encodeURIComponent(id)}/read`, {
+      method: 'PATCH',
+      admin: true,
+    }),
+  markAllAdminNotificationsRead: () =>
+    request('/admin/notifications/read-all', { method: 'POST', admin: true }),
+
   // Support — admin
   getAdminSupportTickets: (params = {}) => {
     const q = new URLSearchParams()
     if (params.status) q.set('status', params.status)
     if (params.search) q.set('search', params.search)
+    if (params.unassigned === true || params.unassigned === 1 || params.unassigned === '1') {
+      q.set('unassigned', '1')
+    }
     if (params.limit != null) q.set('limit', String(params.limit))
     if (params.offset != null) q.set('offset', String(params.offset))
     const qs = q.toString()
@@ -506,9 +553,26 @@ export const api = {
   },
   getAdminSupportTicket: (id) =>
     request(`/admin/support/${encodeURIComponent(id)}`, { admin: true }),
+  /** GET /api/admin/support/agents — free & busy support staff */
+  getAdminSupportAgents: () =>
+    request('/admin/support/agents', { admin: true }),
+  /** POST /api/admin/support/:id/assign — admin only; emails user */
+  assignAdminSupportTicket: (id, body) =>
+    request(`/admin/support/${encodeURIComponent(id)}/assign`, {
+      method: 'POST',
+      body,
+      admin: true,
+    }),
   updateAdminSupportTicketStatus: (id, body) =>
     request(`/admin/support/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
+      body,
+      admin: true,
+    }),
+  /** POST /api/admin/support/:id/reply — reply + email user; optional status */
+  replyAdminSupportTicket: (id, body) =>
+    request(`/admin/support/${encodeURIComponent(id)}/reply`, {
+      method: 'POST',
       body,
       admin: true,
     }),

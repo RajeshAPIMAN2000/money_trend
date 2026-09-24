@@ -49,7 +49,7 @@ const EMPTY = {
 }
 
 /**
- * Popup form for create / edit sub admin.
+ * Popup form for create / edit employee (sub-admin).
  */
 export default function SubAdminFormModal({
   open,
@@ -75,8 +75,8 @@ export default function SubAdminFormModal({
     <AdminModal
       open={open}
       onClose={onClose}
-      title={mode === 'edit' ? 'Edit Sub Admin' : 'Add Sub Admin'}
-      description="Email, password, phone and module roles (SEO, Blogs, News)."
+      title={mode === 'edit' ? 'Edit Employee' : 'Add Employee'}
+      description="Email, password, phone and module roles (SEO, Content Creator, Ticket Raised)."
       wide={false}
     >
       <form
@@ -87,14 +87,14 @@ export default function SubAdminFormModal({
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium text-slate-600">Name (optional)</label>
-            <AdminInput {...register('name')} placeholder="Content Manager" className="mt-1" />
+            <AdminInput {...register('name')} placeholder="Support Agent" className="mt-1" />
           </div>
           <div>
             <label className="text-xs font-medium text-slate-600">Email *</label>
             <AdminInput
               {...register('email', { required: true })}
               type="email"
-              placeholder="subadmin@moneytrend.in"
+              placeholder="support@moneytrend.in"
               className="mt-1"
             />
           </div>
@@ -152,8 +152,8 @@ export default function SubAdminFormModal({
             {submitting
               ? 'Saving…'
               : mode === 'edit'
-                ? 'Update Sub Admin'
-                : 'Create Sub Admin'}
+                ? 'Update Employee'
+                : 'Create Employee'}
           </AdminButton>
         </div>
       </form>

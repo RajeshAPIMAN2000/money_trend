@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import AdminModal from '../shared/AdminModal.jsx'
 import AdminButton from '../ui/AdminButton.jsx'
 import AdminInput from '../ui/AdminInput.jsx'
+import RichTextEditor, { isEmptyHtml } from '../shared/RichTextEditor.jsx'
 import { EMPTY_ARTICLE_FORM } from '../../../lib/adminContent.js'
 
 const ADMIN_STATUS_OPTIONS = [
@@ -50,13 +51,19 @@ export default function ArticleFormModal({
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!form.title.trim()) {
-      setLocalError('Title is required')
+    if (!String(form.title || '').trim()) {
+      setLocalError('Heading is required')
+      return
+    }
+    if (isEmptyHtml(form.description)) {
+      setLocalError('Description is required')
       return
     }
     setLocalError('')
     onSubmit({
       ...form,
+      title: String(form.title).trim(),
+      content: '',
       status: isSubAdmin ? 'pending' : form.status,
       resubmit: isSubAdmin ? true : Boolean(form.resubmit),
       image: imageFileRef.current ?? form.image,
@@ -106,34 +113,25 @@ export default function ArticleFormModal({
         )}
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Title</label>
-          <AdminInput
-            value={form.title}
-            onChange={(e) => update('title', e.target.value)}
-            placeholder="Article title"
+          <label className="block text-xs font-medium text-slate-500 mb-1">Image</label>
+          {form.existingImage && !form.image && (
+            <img
+              src={form.existingImage}
+              alt="Current"
+              className="mb-2 h-24 w-auto rounded-lg border border-slate-200 object-cover"
+            />
+          )}
+          {form.image instanceof File && (
+            <p className="text-xs text-emerald-600 mb-2">Selected: {form.image.name}</p>
+          )}
+          <input
+            type="file"
+            name="image"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => update('image', e.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
           />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => update('description', e.target.value)}
-            rows={3}
-            placeholder="Short description or summary"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Content</label>
-          <textarea
-            value={form.content}
-            onChange={(e) => update('content', e.target.value)}
-            rows={8}
-            placeholder="Full article content"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-          />
+          <p className="text-xs text-slate-400 mt-1">Leave empty to keep the current image when editing.</p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -170,25 +168,22 @@ export default function ArticleFormModal({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Image</label>
-          {form.existingImage && !form.image && (
-            <img
-              src={form.existingImage}
-              alt="Current"
-              className="mb-2 h-24 w-auto rounded-lg border border-slate-200 object-cover"
-            />
-          )}
-          {form.image instanceof File && (
-            <p className="text-xs text-emerald-600 mb-2">Selected: {form.image.name}</p>
-          )}
-          <input
-            type="file"
-            name="image"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={(e) => update('image', e.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+          <label className="block text-xs font-medium text-slate-500 mb-1">Heading</label>
+          <AdminInput
+            value={form.title}
+            onChange={(e) => update('title', e.target.value)}
+            placeholder="Article heading"
           />
-          <p className="text-xs text-slate-400 mt-1">Leave empty to keep the current image when editing.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
+          <RichTextEditor
+            value={form.description}
+            onChange={(html) => update('description', html)}
+            placeholder="Write description with bullet points and formatting…"
+            minHeight={180}
+          />
         </div>
       </form>
     </AdminModal>

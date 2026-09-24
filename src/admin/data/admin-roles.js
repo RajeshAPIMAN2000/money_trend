@@ -1,6 +1,6 @@
 /**
- * Sub-admin roles assignable by Super Admin.
- * Maps to admin panel modules: SEO, Blogs, News.
+ * Employee (sub-admin) roles assignable by Super Admin.
+ * Maps to admin panel modules: SEO, Content Creator, Ticket Raised.
  */
 
 export const SUPER_ADMIN_ROLE = 'super_admin'
@@ -10,33 +10,49 @@ export const SUB_ADMIN_ROLES = [
     id: 'seo',
     label: 'SEO Management',
     description: 'Meta titles & descriptions, Google Analytics, sitemap.xml, robots.txt',
-    paths: ['/admin/seo'],
+    paths: ['/admin/seo', '/admin/notifications'],
     path: '/admin/seo',
   },
   {
-    id: 'blogs',
-    label: 'Blog Management',
-    description: 'Add blogs and view / edit blog posts',
-    paths: ['/admin/blogs'],
-    path: '/admin/blogs',
+    id: 'content_creator',
+    label: 'Content Creator',
+    description: 'Create and manage News and Blogs in one workspace (rich-text heading & description)',
+    paths: ['/admin/content-creator', '/admin/news', '/admin/blogs', '/admin/notifications'],
+    path: '/admin/content-creator',
   },
   {
-    id: 'news',
-    label: 'News Management',
-    description: 'Add news and view / edit news articles',
-    paths: ['/admin/news'],
-    path: '/admin/news',
+    id: 'support',
+    label: 'Ticket Raised',
+    description: 'Handle assigned user tickets; Admin assigns free/busy Customer Support agents',
+    paths: ['/admin/support', '/admin/notifications'],
+    path: '/admin/support',
   },
 ]
 
 export const SUB_ADMIN_ROLE_IDS = SUB_ADMIN_ROLES.map((r) => r.id)
 
 const SUPER_ALIASES = new Set(['super_admin', 'superadmin', 'admin', 'full_admin'])
-const SUB_TYPE_ALIASES = new Set(['sub_admin', 'subadmin', 'staff', 'editor'])
+const SUB_TYPE_ALIASES = new Set(['sub_admin', 'subadmin', 'staff', 'editor', 'employee'])
+
+/** Legacy / API aliases → canonical role id */
+const ROLE_ALIASES = {
+  blog: 'content_creator',
+  blogs: 'content_creator',
+  news: 'content_creator',
+  content: 'content_creator',
+  'content-creator': 'content_creator',
+  content_creator: 'content_creator',
+  customer_support: 'support',
+  'customer-support': 'support',
+  ticket_raised: 'support',
+  'ticket-raised': 'support',
+  tickets: 'support',
+}
 
 export function roleLabel(roleId) {
   if (SUPER_ALIASES.has(String(roleId || '').toLowerCase())) return 'Super Admin'
-  return SUB_ADMIN_ROLES.find((r) => r.id === roleId)?.label || String(roleId || '—')
+  const id = ROLE_ALIASES[String(roleId || '').toLowerCase()] || String(roleId || '')
+  return SUB_ADMIN_ROLES.find((r) => r.id === id)?.label || String(roleId || '—')
 }
 
 function pushRole(list, value) {
@@ -52,12 +68,14 @@ function pushRole(list, value) {
   }
   const s = String(value).trim().toLowerCase()
   if (!s) return
-  // API may send "blog"; panel roles use "blogs"
-  const normalized = s === 'blog' ? 'blogs' : s
-  // "content.blogs" → also keep "blogs"
+  const normalized = ROLE_ALIASES[s] || s
   list.push(normalized)
-  const parts = normalized.split(/[./]/)
-  if (parts.length > 1) list.push(parts[parts.length - 1] === 'blog' ? 'blogs' : parts[parts.length - 1])
+  // "content.blogs" → also keep last segment (mapped)
+  const parts = s.split(/[./]/)
+  if (parts.length > 1) {
+    const last = parts[parts.length - 1]
+    list.push(ROLE_ALIASES[last] || (last === 'blog' ? 'content_creator' : last))
+  }
 }
 
 /** Normalize roles array from API / stored admin user */
@@ -71,11 +89,11 @@ export function normalizeAdminRoles(user) {
   pushRole(collected, user.modules)
   pushRole(collected, user.allowed_modules)
 
-  // Single role string — only keep if it is a known module or super alias
   const single = user.role
   if (typeof single === 'string' && single.trim()) {
     const s = single.trim().toLowerCase()
-    if (SUPER_ALIASES.has(s) || SUB_ADMIN_ROLE_IDS.includes(s)) {
+    const mapped = ROLE_ALIASES[s] || s
+    if (SUPER_ALIASES.has(s) || SUB_ADMIN_ROLE_IDS.includes(mapped)) {
       pushRole(collected, s)
     }
   }
@@ -91,7 +109,6 @@ export function isSubAdminAccount(user) {
   if (SUB_TYPE_ALIASES.has(role)) return true
   const roles = normalizeAdminRoles(user)
   if (roles.some((r) => SUPER_ALIASES.has(r))) return false
-  // Has at least one content module role and no super role
   return roles.some((r) => SUB_ADMIN_ROLE_IDS.includes(r))
 }
 
@@ -102,7 +119,6 @@ export function isSuperAdmin(user) {
   }
   const roles = normalizeAdminRoles(user)
   if (roles.some((r) => SUPER_ALIASES.has(r))) return true
-  // Legacy admin sessions without roles / type → treat as super admin
   if (!roles.length && !isSubAdminAccount(user)) return true
   return false
 }
@@ -112,6 +128,15 @@ export function hasAdminPermission(user, permission) {
   const roles = normalizeAdminRoles(user)
   const key = String(permission || '').toLowerCase()
   if (!key) return false
+
+  // Content Creator covers news + blogs (+ content-creator page)
+  if (
+    (key === 'news' || key === 'blogs' || key === 'blog' || key === 'content_creator' || key === 'content')
+    && roles.includes('content_creator')
+  ) {
+    return true
+  }
+
   if (roles.includes(key)) return true
   return roles.some((r) => r === key || r.endsWith(`.${key}`) || r.includes(key))
 }
@@ -124,15 +149,32 @@ export function getAssignedSubAdminModules(user) {
 
 /** Filter admin nav tree by logged-in admin roles */
 export function filterAdminNavByRoles(navItems, user) {
-  if (isSuperAdmin(user)) return navItems
+  if (isSuperAdmin(user)) {
+    // Super admin: Content Management keeps News & Blogs separate — hide Content Creator hub
+    return navItems.map((item) => {
+      if (!item.children?.length) return item
+      if (item.label !== 'Content Management') return item
+      return {
+        ...item,
+        children: item.children.filter((c) => c.path !== '/admin/content-creator'),
+      }
+    })
+  }
 
   const roles = normalizeAdminRoles(user)
-  const allowedPaths = new Set(['/admin']) // dashboard always
+  const allowedPaths = new Set(['/admin'])
 
   for (const role of SUB_ADMIN_ROLES) {
     if (roles.includes(role.id)) {
       role.paths.forEach((p) => allowedPaths.add(p))
     }
+  }
+
+  // Employees with Content Creator: show the unified hub, not separate News/Blogs
+  if (roles.includes('content_creator')) {
+    allowedPaths.add('/admin/content-creator')
+    allowedPaths.delete('/admin/news')
+    allowedPaths.delete('/admin/blogs')
   }
 
   return navItems
@@ -156,5 +198,5 @@ export function adminRoleSummary(user) {
   if (isSuperAdmin(user)) return 'Super Admin'
   const modules = getAssignedSubAdminModules(user)
   if (modules.length) return modules.map((m) => m.label).join(', ')
-  return 'Sub Admin'
+  return 'Employee'
 }

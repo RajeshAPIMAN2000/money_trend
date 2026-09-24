@@ -324,22 +324,7 @@ export const moduleRegistry = {
       ['FAQ', '/faq', 'Admin', '20 Jun 2026', 'Draft'],
     ], ([page, slug, author, updated, status], i) => ({ id: i, page, slug, author, updated, status })),
   }, */
-  notifications: {
-    title: 'Notifications',
-    breadcrumb: ['Home', 'Communication', 'Notifications'],
-    description: 'Send and manage push and in-app notifications.',
-    stats: [
-      { label: 'Sent Today', value: '2,840' }, { label: 'Open Rate', value: '42%' },
-      { label: 'Scheduled', value: '6' }, { label: 'Templates', value: '18' },
-    ],
-    columns: [{ key: 'title', label: 'Title' }, { key: 'type', label: 'Type' }, { key: 'audience', label: 'Audience' }, { key: 'sent', label: 'Sent' }, { key: 'openRate', label: 'Open Rate' }, { key: 'status', label: 'Status' }],
-    rows: mkRows([
-      ['Market Update: NIFTY ATH', 'Push', 'All Users', '12,840', '45%', 'Sent'],
-      ['KYC Reminder', 'In-App', 'Pending KYC', '142', '68%', 'Sent'],
-      ['SIP Due Reminder', 'Push', 'SIP Users', '12,840', '52%', 'Scheduled'],
-    ], ([title, type, audience, sent, openRate, status], i) => ({ id: i, title, type, audience, sent, openRate, status })),
-    filters: ['Sent', 'Scheduled'],
-  },
+  /* notifications served by AdminNotificationsPage */
   'email-templates': {
     title: 'Email Templates',
     breadcrumb: ['Home', 'Communication', 'Email Templates'],

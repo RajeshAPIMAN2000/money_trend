@@ -4,6 +4,23 @@
 
 import { roleLabel, SUB_ADMIN_ROLE_IDS } from '../admin/data/admin-roles.js'
 
+const ROLE_NORMALIZE = {
+  blog: 'content_creator',
+  blogs: 'content_creator',
+  news: 'content_creator',
+  content: 'content_creator',
+  'content-creator': 'content_creator',
+  customer_support: 'support',
+  'customer-support': 'support',
+  ticket_raised: 'support',
+  'ticket-raised': 'support',
+}
+
+function normalizeRoleId(value) {
+  const s = String(value || '').trim().toLowerCase()
+  return ROLE_NORMALIZE[s] || s
+}
+
 function unwrap(payload) {
   return payload?.data ?? payload ?? {}
 }
@@ -23,12 +40,14 @@ function asList(payload) {
 export function parseSubAdmin(raw) {
   if (!raw || typeof raw !== 'object') return null
   const rolesRaw = raw.roles ?? raw.role_list ?? raw.permissions ?? []
-  const roles = Array.isArray(rolesRaw)
-    ? rolesRaw.map((r) => String(typeof r === 'object' ? (r.id || r.slug || r.name) : r).toLowerCase()).filter(Boolean)
-    : String(rolesRaw || '')
-        .split(/[,|]/)
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean)
+  const roles = [...new Set(
+    (Array.isArray(rolesRaw)
+      ? rolesRaw.map((r) => normalizeRoleId(typeof r === 'object' ? (r.id || r.slug || r.name) : r))
+      : String(rolesRaw || '')
+          .split(/[,|]/)
+          .map((s) => normalizeRoleId(s.trim()))
+    ).filter(Boolean),
+  )]
 
   const status = String(raw.status ?? 'active').toLowerCase()
   return {
@@ -58,36 +77,46 @@ export function parseSubAdminsList(payload) {
   return {
     items,
     stats: [
-      { label: 'Total Sub Admins', value: String(items.length) },
+      { label: 'Total Employees', value: String(items.length) },
       { label: 'Active', value: String(items.filter((i) => i.status === 'Active').length) },
+      { label: 'Content Creator', value: String(items.filter((i) => i.roles.includes('content_creator')).length) },
+      { label: 'Ticket Raised', value: String(items.filter((i) => i.roles.includes('support')).length) },
       { label: 'SEO Role', value: String(items.filter((i) => i.roles.includes('seo')).length) },
-      { label: 'Content Roles', value: String(items.filter((i) => i.roles.includes('blogs') || i.roles.includes('news')).length) },
     ],
   }
 }
 
-export function buildCreateSubAdminBody({ email, password, phone, roles, name, status } = {}) {
+export function buildCreateSubAdminBody({ email, password, phone, roles, name, full_name, status } = {}) {
+  const displayName = String(full_name || name || '').trim()
   const body = {
     email: String(email || '').trim().toLowerCase(),
     password: String(password || ''),
     phone: String(phone || '').trim(),
     roles: (Array.isArray(roles) ? roles : [])
-      .map((r) => String(r).toLowerCase())
+      .map((r) => normalizeRoleId(r))
       .filter((r) => SUB_ADMIN_ROLE_IDS.includes(r)),
   }
-  if (name) body.name = String(name).trim()
+  if (displayName) {
+    body.full_name = displayName
+    body.name = displayName
+  }
   if (status) body.status = String(status).toLowerCase() === 'suspended' ? 'inactive' : 'active'
   return body
 }
 
-export function buildUpdateSubAdminBody({ email, password, phone, roles, name, status } = {}) {
+export function buildUpdateSubAdminBody({ email, password, phone, roles, name, full_name, status } = {}) {
   const body = {}
   if (email != null) body.email = String(email).trim().toLowerCase()
   if (phone != null) body.phone = String(phone).trim()
-  if (name != null) body.name = String(name).trim()
+  const displayName = full_name != null ? full_name : name
+  if (displayName != null) {
+    const n = String(displayName).trim()
+    body.full_name = n
+    body.name = n
+  }
   if (roles != null) {
     body.roles = (Array.isArray(roles) ? roles : [])
-      .map((r) => String(r).toLowerCase())
+      .map((r) => normalizeRoleId(r))
       .filter((r) => SUB_ADMIN_ROLE_IDS.includes(r))
   }
   if (password) body.password = String(password)
@@ -102,7 +131,7 @@ export function buildUpdateSubAdminBody({ email, password, phone, roles, name, s
 export function mapSubAdminToTableRow(item) {
   return {
     id: item.id,
-    name: item.name || item.email || 'Sub Admin',
+    name: item.name || item.email || 'Employee',
     email: item.email,
     phone: item.phone || '—',
     roles: item.rolesDisplay,

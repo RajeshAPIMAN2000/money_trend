@@ -47,7 +47,13 @@ export function parseAdminUsersList(payload) {
 export function parseAdminUserDetail(payload) {
   const root = unwrap(payload)
   const user = root.user ?? root
-  const parsed = parseAdminUserRecord(user)
+  // Detail may nest kyc/nominee on root alongside user
+  const merged = {
+    ...user,
+    kyc: user.kyc ?? root.kyc ?? {},
+    nominee: user.nominee ?? root.nominee ?? {},
+  }
+  const parsed = parseAdminUserRecord(merged)
   if (!parsed) return null
 
   // Goals may be nested on user, detail root, or portfolio
@@ -116,7 +122,7 @@ function parseAdminUserRecord(user) {
     creditCheckedAt: formatCreditDate(cibilMeta.checked_at ?? cibilMeta.checkedAt ?? creditMeta.checked_at),
     goals: [],
     kyc: {
-      submitted: Boolean(kyc.submitted),
+      submitted: Boolean(kyc.submitted || kyc.pan_number || kyc.aadhaar_number),
       message: kyc.message ?? '',
       status: kyc.status ?? kycStatus,
       method: kyc.method ?? kycMethod,
@@ -128,13 +134,13 @@ function parseAdminUserRecord(user) {
       digilockerRef: kyc.digilocker_ref ?? null,
       createdAt: kyc.created_at,
     },
-    nominee: nominee.added
+    nominee: (nominee.added || nominee.nominee_name || nominee.name)
       ? {
           added: true,
-          name: nominee.nominee_name ?? '',
+          name: nominee.nominee_name ?? nominee.name ?? '',
           relationship: nominee.relationship ?? '',
-          dob: formatDate(nominee.date_of_birth),
-          phone: nominee.mobile ?? '',
+          dob: formatDate(nominee.date_of_birth ?? nominee.dob),
+          phone: nominee.mobile ?? nominee.phone ?? '',
           email: nominee.email ?? '',
           address: nominee.address ?? '',
           panNumber: nominee.pan_number ?? '',
@@ -149,6 +155,62 @@ function parseAdminUserRecord(user) {
         }
       : { added: false, message: nominee.message ?? 'Nominee not added' },
   }
+}
+
+/** Extract created user id from POST /admin/users response */
+export function extractCreatedAdminUserId(payload) {
+  const root = unwrap(payload)
+  const user = root.user ?? root.data?.user ?? root
+  return user?.id ?? root.user_id ?? root.id ?? null
+}
+
+/** Multipart body for POST /admin/users/:id/kyc (same as user manual KYC) */
+export function buildAdminUserKycFormData({
+  panNumber,
+  panFullName,
+  aadhaarNumber,
+  panImage,
+  aadhaarImage,
+  autoApprove = false,
+}) {
+  const fd = new FormData()
+  fd.append('pan_number', String(panNumber || '').trim().toUpperCase())
+  fd.append('pan_full_name', String(panFullName || '').trim())
+  fd.append('aadhaar_number', String(aadhaarNumber || '').replace(/\D/g, ''))
+  if (panImage) fd.append('pan_image', panImage)
+  if (aadhaarImage) fd.append('aadhaar_image', aadhaarImage)
+  if (autoApprove) fd.append('auto_approve', 'true')
+  return fd
+}
+
+/** Multipart body for POST /admin/users/:id/nominee (same as user nominee) */
+export function buildAdminUserNomineeFormData(form, panFile, aadhaarFile) {
+  const pan = String(form.panNumber || '').trim().toUpperCase()
+  const aadhaar = String(form.aadhaarNumber || '').replace(/\s/g, '')
+  const mobile = String(form.mobile || '').replace(/\D/g, '')
+  const allocation = Number(form.allocationPercent ?? 100)
+  const dob = form.dob || form.dateOfBirth || ''
+
+  const fd = new FormData()
+  fd.append('nominee_name', String(form.nomineeName || '').trim())
+  fd.append('relationship', form.relationship || '')
+  fd.append('dob', dob)
+  fd.append('date_of_birth', dob)
+  fd.append('mobile', mobile)
+  fd.append('email', String(form.email || '').trim().toLowerCase())
+  fd.append('address', String(form.address || '').trim())
+  fd.append('pan_number', pan)
+  fd.append('aadhaar_number', aadhaar)
+  fd.append('allocation_percent', String(Number.isFinite(allocation) ? allocation : 100))
+  if (panFile) fd.append('pan_image', panFile)
+  if (aadhaarFile) fd.append('aadhaar_image', aadhaarFile)
+
+  if (form.guardianName) fd.append('guardian_name', String(form.guardianName || '').trim())
+  if (form.guardianRelationship) {
+    fd.append('guardian_relationship', String(form.guardianRelationship || '').trim())
+  }
+
+  return fd
 }
 
 export function mapUserToTableRow(user) {

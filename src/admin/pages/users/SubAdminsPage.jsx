@@ -41,14 +41,14 @@ export default function SubAdminsPage() {
   const handleCreate = async (values) => {
     setFormError('')
     if (!values.roles?.length) {
-      setFormError('Select at least one role (SEO, Blog, or News).')
+      setFormError('Select at least one role (SEO, Content Creator, or Ticket Raised).')
       return
     }
     try {
       await create.mutateAsync(values)
       closeForm()
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Failed to create sub admin')
+      setFormError(err instanceof ApiError ? err.message : 'Failed to create employee')
     }
   }
 
@@ -56,14 +56,14 @@ export default function SubAdminsPage() {
     if (!editId) return
     setFormError('')
     if (!values.roles?.length) {
-      setFormError('Select at least one role (SEO, Blog, or News).')
+      setFormError('Select at least one role (SEO, Content Creator, or Ticket Raised).')
       return
     }
     try {
       await update.mutateAsync({ id: editId, fields: values })
       closeForm()
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Failed to update sub admin')
+      setFormError(err instanceof ApiError ? err.message : 'Failed to update employee')
     }
   }
 
@@ -74,7 +74,7 @@ export default function SubAdminsPage() {
       await remove.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
     } catch (err) {
-      setDeleteError(err instanceof ApiError ? err.message : 'Failed to delete sub admin')
+      setDeleteError(err instanceof ApiError ? err.message : 'Failed to delete employee')
     }
   }
 
@@ -91,9 +91,9 @@ export default function SubAdminsPage() {
 
   return (
     <PageShell
-      title="Sub Admins"
-      breadcrumb={['Home', 'User Management', 'Sub Admins']}
-      description="Create sub-admin accounts with email, password, phone and module roles (SEO, Blogs, News)."
+      title="Employees"
+      breadcrumb={['Home', 'User Management', 'Employees']}
+      description="Create employee accounts with email, password, phone and module roles (SEO, Content Creator, Ticket Raised)."
       stats={data?.stats ?? []}
       actions={
         <AdminButton
@@ -101,18 +101,18 @@ export default function SubAdminsPage() {
           type="button"
           onClick={() => { setFormError(''); setCreateOpen(true) }}
         >
-          <Plus className="w-4 h-4" /> Add Sub Admin
+          <Plus className="w-4 h-4" /> Add Employee
         </AdminButton>
       }
     >
       {error && (
         <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600 mb-4">
-          {error.message || 'Failed to load sub admins'}
+          {error.message || 'Failed to load employees'}
         </div>
       )}
 
       {isLoading ? (
-        <div className="p-8 text-center text-slate-500">Loading sub admins…</div>
+        <div className="p-8 text-center text-slate-500">Loading employees…</div>
       ) : (
         <DataTable
           columns={[
@@ -127,7 +127,7 @@ export default function SubAdminsPage() {
           avatarColumn="name"
           statusColumn="status"
           filters={['Active', 'Suspended']}
-          searchPlaceholder="Search sub admins…"
+          searchPlaceholder="Search employees…"
           actions={(row) => (
             <div className="flex items-center gap-1">
               <button
@@ -176,15 +176,15 @@ export default function SubAdminsPage() {
       />
 
       {editId && editLoading && (
-        <AdminModal open onClose={closeForm} title="Edit Sub Admin">
-          <p className="text-sm text-slate-500 py-6 text-center">Loading sub admin…</p>
+        <AdminModal open onClose={closeForm} title="Edit Employee">
+          <p className="text-sm text-slate-500 py-6 text-center">Loading employee…</p>
         </AdminModal>
       )}
 
       <AdminModal
         open={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
-        title="Delete Sub Admin"
+        title="Delete Employee"
         footer={(
           <>
             <AdminButton variant="outline" type="button" onClick={() => setDeleteTarget(null)}>Cancel</AdminButton>

@@ -3,14 +3,18 @@ import {
   useAdminNews,
   useAdminNewsItem,
   useAdminNewsMutations,
-  useAdminBlogs,
-  useAdminBlog,
-  useAdminBlogMutations,
 } from '../../hooks/useAdminContent.js'
 
-export default createContentArticlesPage({
+const newsOpts = {
   type: 'news',
   useList: useAdminNews,
   useItem: useAdminNewsItem,
   useMutations: useAdminNewsMutations,
+}
+
+export default createContentArticlesPage(newsOpts)
+
+export const EmbeddedNewsPanel = createContentArticlesPage({
+  ...newsOpts,
+  embedded: true,
 })
