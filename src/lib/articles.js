@@ -1,4 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
+import { prepareRichHtml, stripHtml } from './html.js'
 
 const BLOG_CATEGORY_COLORS = {
   Beginners: 'bg-secondary',
@@ -51,11 +52,14 @@ function mapArticleItem(item, type = 'blog') {
   const author = extractAuthorName(item, 'MoneyTrend')
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
 
+  const rawDescription = item.description ?? item.excerpt ?? item.summary ?? ''
+  const rawContent = item.content ?? item.body ?? item.html_content ?? rawDescription
+
   return {
     id: item.id,
-    title: item.title ?? item.heading ?? item.name ?? '',
-    excerpt: item.excerpt ?? item.summary ?? item.description ?? '',
-    content: item.content ?? item.body ?? item.html_content ?? item.description ?? '',
+    title: stripHtml(prepareRichHtml(item.title ?? item.heading ?? item.name ?? '')) || 'Untitled',
+    excerpt: stripHtml(prepareRichHtml(rawDescription)),
+    content: prepareRichHtml(rawContent),
     category,
     author,
     source: item.source ?? item.publisher ?? author,

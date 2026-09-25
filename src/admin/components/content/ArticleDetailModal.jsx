@@ -1,7 +1,7 @@
 import AdminModal from '../shared/AdminModal.jsx'
 import AdminButton from '../ui/AdminButton.jsx'
 import AdminBadge from '../ui/AdminBadge.jsx'
-import { isHtmlContent } from '../../../lib/html.js'
+import { isHtmlContent, prepareRichHtml } from '../../../lib/html.js'
 
 function DetailItem({ label, value }) {
   return (
@@ -13,17 +13,18 @@ function DetailItem({ label, value }) {
 }
 
 function HtmlBlock({ label, html }) {
-  if (!html) return null
+  const prepared = prepareRichHtml(html)
+  if (!prepared || prepared === '—') return null
   return (
     <div>
       <p className="text-xs text-slate-500 mb-1">{label}</p>
-      {isHtmlContent(html) ? (
+      {isHtmlContent(prepared) ? (
         <div
-          className="prose prose-sm max-w-none text-slate-700 dark:text-slate-300 rounded-xl border border-slate-100 dark:border-slate-800 p-3 max-h-64 overflow-y-auto [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
-          dangerouslySetInnerHTML={{ __html: html }}
+          className="article-rich max-w-none text-sm text-slate-700 dark:text-slate-300 rounded-xl border border-slate-100 dark:border-slate-800 p-3 max-h-64 overflow-y-auto [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_p]:mb-2 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li[data-list=bullet]]:list-disc"
+          dangerouslySetInnerHTML={{ __html: prepared }}
         />
       ) : (
-        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{html}</p>
+        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{prepared}</p>
       )}
     </div>
   )
