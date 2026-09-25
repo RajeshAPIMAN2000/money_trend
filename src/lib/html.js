@@ -97,13 +97,18 @@ function matchStrippedTag(s, index, depth = 0) {
 
   const next = s[end] || ''
   const nextIsLetter = /[a-z0-9]/i.test(next)
+  const atEnd = end >= s.length
 
   if (!attrs) {
-    const followingIsTag = matchStrippedTag(s, end, depth + 1)
-    if (!followingIsTag) {
-      // Closing tags like `/strong` are safe when they are not the start of a word.
-      if (!(close && !nextIsLetter)) return null
+    const followingIsTag = !atEnd && matchStrippedTag(s, end, depth + 1)
+    if (followingIsTag) return { name, attrs, end, close }
+    // `/strong` or `/p` at a word boundary (space, punctuation, or end)
+    if (close && !nextIsLetter) return { name, attrs, end, close }
+    // leftover `p` / `br` glued at the end of stripped markup
+    if (atEnd && (name === 'p' || name === 'br' || name === 'div' || name === 'span' || name === 'li')) {
+      return { name, attrs, end, close }
     }
+    return null
   }
 
   return { name, attrs, end, close }

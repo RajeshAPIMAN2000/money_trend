@@ -53,13 +53,19 @@ function mapArticleItem(item, type = 'blog') {
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
 
   const rawDescription = item.description ?? item.excerpt ?? item.summary ?? ''
-  const rawContent = item.content ?? item.body ?? item.html_content ?? rawDescription
+  const rawContent = item.content ?? item.body ?? item.html_content ?? ''
+  const descriptionHtml = prepareRichHtml(rawDescription)
+  const contentHtml = prepareRichHtml(rawContent)
+  const tagCount = (value) => (String(value).match(/<[a-z][^>]*>/gi) || []).length
+  const bodyHtml = tagCount(contentHtml) >= tagCount(descriptionHtml)
+    ? (contentHtml || descriptionHtml)
+    : descriptionHtml
 
   return {
     id: item.id,
     title: stripHtml(prepareRichHtml(item.title ?? item.heading ?? item.name ?? '')) || 'Untitled',
-    excerpt: stripHtml(prepareRichHtml(rawDescription)),
-    content: prepareRichHtml(rawContent),
+    excerpt: stripHtml(descriptionHtml || contentHtml),
+    content: bodyHtml,
     category,
     author,
     source: item.source ?? item.publisher ?? author,

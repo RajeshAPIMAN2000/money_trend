@@ -1,4 +1,4 @@
-import { isHtmlContent, prepareRichHtml, stripHtml } from '../../lib/html.js'
+import { isHtmlContent, prepareRichHtml } from '../../lib/html.js'
 
 const RICH_CLASS = [
   'article-rich max-w-none text-ink leading-relaxed',
@@ -16,25 +16,48 @@ const RICH_CLASS = [
   '[&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:text-slate-600',
 ].join(' ')
 
-function ArticleBody({ content, excerpt }) {
-  const html = prepareRichHtml(content || excerpt || '')
-  if (!html) return null
+function pickRichHtml(content, excerpt) {
+  const html = prepareRichHtml(content || '')
+  const fallback = prepareRichHtml(excerpt || '')
+  const count = (value) => (String(value).match(/<[a-z][^>]*>/gi) || []).length
+  if (count(fallback) > count(html)) return fallback
+  return html || fallback
+}
 
-  if (isHtmlContent(html)) {
+function ArticleBody({ content, excerpt }) {
+  const body = pickRichHtml(content, excerpt)
+  if (!body) return null
+
+  if (isHtmlContent(body)) {
     return (
       <div
         className={RICH_CLASS}
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: body }}
       />
     )
   }
 
   return (
     <div className={RICH_CLASS}>
-      {html.split(/\n\n+/).filter(Boolean).map((paragraph) => (
+      {body.split(/\n\n+/).filter(Boolean).map((paragraph) => (
         <p key={paragraph.slice(0, 48)}>{paragraph}</p>
       ))}
     </div>
+  )
+}
+
+/** Short card preview: formatting applies, tags stay hidden. */
+function ArticlePreview({ content, excerpt, className = '' }) {
+  const body = pickRichHtml(content, excerpt)
+  if (!body) return null
+  if (!isHtmlContent(body)) {
+    return <p className={className}>{body}</p>
+  }
+  return (
+    <div
+      className={`${RICH_CLASS} ${className} [&_h1]:text-base [&_h1]:mb-1 [&_h2]:text-base [&_p]:mb-1`}
+      dangerouslySetInnerHTML={{ __html: body }}
+    />
   )
 }
 
@@ -47,4 +70,4 @@ function authorInitials(name = '') {
     .join('') || 'MT'
 }
 
-export { ArticleBody, authorInitials }
+export { ArticleBody, ArticlePreview, authorInitials }

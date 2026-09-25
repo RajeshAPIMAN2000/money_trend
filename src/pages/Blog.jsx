@@ -7,6 +7,7 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageSideLayout from '../components/common/PageSideLayout.jsx'
 import { useArticleList } from '../hooks/useArticles.js'
+import { ArticlePreview } from '../components/common/ArticleBody.jsx'
 
 export default function Blog() {
   const [cat, setCat] = useState('All')
@@ -69,7 +70,11 @@ export default function Blog() {
                     <div className="p-5">
                       <span className={`inline-block text-xs font-semibold text-white px-2.5 py-1 rounded-full ${p.color}`}>{p.category}</span>
                       <h3 className="font-display font-bold text-primary mt-3 text-lg leading-snug">{p.title}</h3>
-                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{p.excerpt}</p>
+                      <ArticlePreview
+                        content={p.content}
+                        excerpt={p.excerpt}
+                        className="text-sm text-slate-600 mt-2 line-clamp-3"
+                      />
                       <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
                         <span>{p.author}</span>
                         <span>{p.date}{p.read ? ` · ${p.read}` : ''}</span>

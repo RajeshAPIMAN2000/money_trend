@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageSideLayout from '../components/common/PageSideLayout.jsx'
 import { useArticleList } from '../hooks/useArticles.js'
+import { ArticlePreview } from '../components/common/ArticleBody.jsx'
 
 export default function News() {
   const { items, loading, loadingMore, error, loadMore, hasMore } = useArticleList('news')
@@ -47,7 +48,11 @@ export default function News() {
                       <div className="bg-gradient-to-br from-primary to-secondary text-white p-6">
                         <Badge tone="green">{featured.category}</Badge>
                         <h2 className="font-display font-bold text-2xl md:text-3xl mt-3">{featured.title}</h2>
-                        <p className="text-white/80 mt-3">{featured.excerpt}</p>
+                        <ArticlePreview
+                          content={featured.content}
+                          excerpt={featured.excerpt}
+                          className="text-white/80 mt-3 line-clamp-3 [&_h1]:text-white [&_h1]:text-lg [&_p]:text-white/80 [&_span]:!text-inherit [&_strong]:text-white"
+                        />
                         <div className="mt-4 text-xs text-white/60">
                           {featured.author || featured.source} • {featured.date}{featured.read ? ` • ${featured.read} read` : ''}
                         </div>
@@ -76,7 +81,11 @@ export default function News() {
                         <div className="p-5">
                           <Badge tone={n.tone}>{n.category}</Badge>
                           <h3 className="font-semibold text-primary mt-3 leading-snug">{n.title}</h3>
-                          <p className="text-sm text-slate-600 mt-2 line-clamp-2">{n.excerpt}</p>
+                          <ArticlePreview
+                            content={n.content}
+                            excerpt={n.excerpt}
+                            className="text-sm text-slate-600 mt-2 line-clamp-3"
+                          />
                           <div className="text-xs text-slate-500 mt-3">
                             {n.author || n.source} · {n.date}{n.read ? ` · ${n.read}` : ''}
                           </div>
