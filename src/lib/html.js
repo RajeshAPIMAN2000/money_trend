@@ -1,12 +1,4 @@
-/** Longest tag names first so "strong" wins over "s". */
-const TAG_NAMES = [
-  'blockquote', 'strong', 'strike', 'span', 'code',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'em', 'ul', 'ol', 'li', 'br', 'hr', 'pre', 'div',
-  'sub', 'sup', 'img', 'a', 'u', 'b', 'i', 's', 'p',
-]
-
-/** Strip HTML tags for plain-text display / validation */
+const TAG_PATTERN = 'blockquote|strong|strike|span|code|h1|h2|h3|h4|h5|h6|em|ul|ol|li|br|hr|pre|div|sub|sup|img|u|b|i|s|p'
 export function stripHtml(html) {
   return String(html || '')
     .replace(/<[^>]*>/g, ' ')
@@ -47,71 +39,49 @@ export function decodeHtmlEntities(value) {
 
 function looksLikeStrippedHtml(value) {
   if (/<[a-z/!]/i.test(value)) return false
-  return /\/(?:strong|span|em|li|h[1-6]|p)(?![a-z])/i.test(value)
-    || /(?:h[1-6]|strong|span|p|div)\s+[a-z-]+=\s*"/i.test(value)
+  return /\/pp|\/strong|\/em|\/span|\/h[1-6]|\/li|\/br/i.test(value)
+    || /(?:^|\n)(?:strong|em|h[1-6]|b|i|u)[A-Z0-9]/m.test(value)
+    || /(?:strong|span|h[1-6]|p)\s+[a-z-]+=\s*"/i.test(value)
 }
 
 /**
- * Some stored descriptions lost `<` and `>` and show as
- * `h1strong style="..."Text/strong/h1pbr/p`. Put the brackets back
- * so the browser can render headings, bold, and paragraphs.
+ * Stored articles sometimes lose `<` and `>` and arrive as
+ * `Title/ppBody strongBold/strong more`. Put the brackets back
+ * so headings, bold, italics and paragraphs render.
  */
 export function restoreStrippedHtmlTags(value) {
-  const s = String(value || '')
-  if (!looksLikeStrippedHtml(s)) return s
+  const original = String(value || '')
+  if (!looksLikeStrippedHtml(original)) return original
 
-  let i = 0
-  let out = ''
-  while (i < s.length) {
-    const matched = matchStrippedTag(s, i)
-    if (matched) {
-      out += matched.close ? `</${matched.name}>` : `<${matched.name}${matched.attrs}>`
-      i = matched.end
-      continue
-    }
-    out += s[i]
-    i += 1
-  }
-  return out
-}
+  let html = original
+    .replace(/\/pp/g, '\u0000PP\u0000')
+    .replace(/pbr\/p/g, '\u0000BR\u0000')
 
-function matchStrippedTag(s, index, depth = 0) {
-  if (depth > 12) return null
-  const close = s[index] === '/'
-  const start = close ? index + 1 : index
-  if (start >= s.length) return null
-  const lower = s.slice(start).toLowerCase()
-  const name = TAG_NAMES.find((tag) => lower.startsWith(tag))
-  if (!name) return null
+  html = html.replace(new RegExp(`/(${TAG_PATTERN})(?![a-z])`, 'g'), '</$1>')
+  html = html
+    .replace(/\u0000PP\u0000/g, '</p><p>')
+    .replace(/\u0000BR\u0000/g, '<p><br></p>')
 
-  let end = start + name.length
-  let attrs = ''
-  if (!close) {
-    while (s[end] === ' ') {
-      const attr = s.slice(end).match(/^\s+[a-zA-Z_:][\w:.-]*=(?:"[^"]*"|'[^']*')/)
-      if (!attr) break
-      attrs += attr[0]
-      end += attr[0].length
-    }
+  const openWithAttrs = new RegExp(
+    `(^|[\\n>])(${TAG_PATTERN})((?:\\s+[a-zA-Z_:][\\w:.-]*=(?:"[^"]*"|'[^']*'))+)`,
+    'g',
+  )
+  html = html.replace(openWithAttrs, '$1<$2$3>')
+
+  const openBeforeText = new RegExp(
+    `(^|[\\n>])(${TAG_PATTERN})(?=[A-Z0-9₹•·])`,
+    'g',
+  )
+  html = html.replace(openBeforeText, '$1<$2>')
+
+  const openAfterSpace = /(^|[\n\s])(blockquote|strong|strike|span|h1|h2|h3|h4|h5|h6|em)(?=[A-Z0-9₹•·])/g
+  html = html.replace(openAfterSpace, '$1<$2>')
+
+  if (html.includes('</p>') && !html.trimStart().startsWith('<')) {
+    html = `<p>${html}`
   }
 
-  const next = s[end] || ''
-  const nextIsLetter = /[a-z0-9]/i.test(next)
-  const atEnd = end >= s.length
-
-  if (!attrs) {
-    const followingIsTag = !atEnd && matchStrippedTag(s, end, depth + 1)
-    if (followingIsTag) return { name, attrs, end, close }
-    // `/strong` or `/p` at a word boundary (space, punctuation, or end)
-    if (close && !nextIsLetter) return { name, attrs, end, close }
-    // leftover `p` / `br` glued at the end of stripped markup
-    if (atEnd && (name === 'p' || name === 'br' || name === 'div' || name === 'span' || name === 'li')) {
-      return { name, attrs, end, close }
-    }
-    return null
-  }
-
-  return { name, attrs, end, close }
+  return html
 }
 
 /** HTML safe to pass to dangerouslySetInnerHTML. Plain text is returned unchanged. */
