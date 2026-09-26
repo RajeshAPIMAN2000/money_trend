@@ -33,7 +33,10 @@ export function useAdminSubAdminMutations() {
 
   const update = useMutation({
     mutationFn: ({ id, fields }) => api.updateAdminSubAdmin(id, buildUpdateSubAdminBody(fields)),
-    onSuccess: invalidate,
+    onSuccess: (_data, vars) => {
+      invalidate()
+      if (vars?.id) queryClient.invalidateQueries({ queryKey: ['admin', 'sub-admins', vars.id] })
+    },
   })
 
   const remove = useMutation({

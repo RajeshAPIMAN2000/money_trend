@@ -55,12 +55,17 @@ export default function SubAdminsPage() {
   const handleUpdate = async (values) => {
     if (!editId) return
     setFormError('')
-    if (!values.roles?.length) {
-      setFormError('Select at least one role (SEO, Content Creator, or Ticket Raised).')
-      return
-    }
     try {
-      await update.mutateAsync({ id: editId, fields: values })
+      await update.mutateAsync({
+        id: editId,
+        fields: {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          roles: values.roles,
+          status: values.status,
+        },
+      })
       closeForm()
     } catch (err) {
       setFormError(err instanceof ApiError ? err.message : 'Failed to update employee')
@@ -84,7 +89,7 @@ export default function SubAdminsPage() {
         email: editItem.email || '',
         password: '',
         phone: editItem.phone || '',
-        status: editItem.status || 'Active',
+        status: editItem.status === 'Active' ? 'Active' : 'Inactive',
         roles: editItem.roles || [],
       }
     : null
@@ -93,7 +98,7 @@ export default function SubAdminsPage() {
     <PageShell
       title="Employees"
       breadcrumb={['Home', 'User Management', 'Employees']}
-      description="Create employee accounts with email, password, phone and module roles (SEO, Content Creator, Ticket Raised)."
+      description="Add, edit, or delete employees by account. Roles: SEO, Content Creator (blogs and news), and Customer Support."
       stats={data?.stats ?? []}
       actions={
         <AdminButton
@@ -126,7 +131,7 @@ export default function SubAdminsPage() {
           rows={rows}
           avatarColumn="name"
           statusColumn="status"
-          filters={['Active', 'Suspended']}
+          filters={['Active', 'Inactive']}
           searchPlaceholder="Search employees…"
           actions={(row) => (
             <div className="flex items-center gap-1">

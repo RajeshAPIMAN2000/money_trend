@@ -61,77 +61,88 @@ export default function SubAdminFormModal({
   submitting = false,
   error = '',
 }) {
+  const editing = mode === 'edit'
   const { register, handleSubmit, watch, setValue, reset } = useForm({
-    defaultValues: { ...EMPTY, ...initialValues },
+    defaultValues: { ...EMPTY, ...initialValues, password: '' },
   })
   const roles = watch('roles') || []
 
   useEffect(() => {
     if (!open) return
-    reset({ ...EMPTY, ...initialValues })
-  }, [open, resetKey, reset])
+    reset({
+      ...EMPTY,
+      ...initialValues,
+      password: '',
+    })
+  }, [open, resetKey, mode, reset])
 
   return (
     <AdminModal
       open={open}
       onClose={onClose}
-      title={mode === 'edit' ? 'Edit Employee' : 'Add Employee'}
-      description="Email, password, phone and module roles (SEO, Content Creator, Ticket Raised)."
+      title={editing ? 'Edit Employee' : 'Add Employee'}
+      description={editing
+        ? 'Update name, email, phone, roles, or active status. No field is required.'
+        : 'Email, password, phone and module roles (SEO, Content Creator, Ticket Raised).'}
       wide={false}
     >
       <form
         id="sub-admin-form"
-        onSubmit={handleSubmit((values) => onSubmit({ ...values, roles }))}
+        onSubmit={handleSubmit((values) => onSubmit({
+          ...values,
+          roles,
+          password: editing ? undefined : values.password,
+        }))}
         className="space-y-4"
       >
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-medium text-slate-600">Name (optional)</label>
+            <label className="text-xs font-medium text-slate-600">Name</label>
             <AdminInput {...register('name')} placeholder="Support Agent" className="mt-1" />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">Email *</label>
+            <label className="text-xs font-medium text-slate-600">Email{editing ? '' : ' *'}</label>
             <AdminInput
-              {...register('email', { required: true })}
+              {...register('email', { required: !editing })}
               type="email"
               placeholder="support@moneytrend.in"
               className="mt-1"
             />
           </div>
+          {!editing && (
+            <div>
+              <label className="text-xs font-medium text-slate-600">Password *</label>
+              <AdminInput
+                {...register('password', { required: true })}
+                type="password"
+                placeholder="Min 8 characters"
+                className="mt-1"
+                autoComplete="new-password"
+              />
+            </div>
+          )}
           <div>
-            <label className="text-xs font-medium text-slate-600">
-              Password {mode === 'edit' ? '(leave blank to keep)' : '*'}
-            </label>
+            <label className="text-xs font-medium text-slate-600">Phone{editing ? '' : ' *'}</label>
             <AdminInput
-              {...register('password', { required: mode === 'create' })}
-              type="password"
-              placeholder={mode === 'edit' ? '••••••••' : 'Min 8 characters'}
-              className="mt-1"
-              autoComplete="new-password"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-slate-600">Phone *</label>
-            <AdminInput
-              {...register('phone', { required: true })}
+              {...register('phone', { required: !editing })}
               placeholder="+91 98765 43210"
               className="mt-1"
             />
           </div>
-          <div className="sm:col-span-2">
+          <div className={editing ? '' : 'sm:col-span-2'}>
             <label className="text-xs font-medium text-slate-600">Status</label>
             <select
               {...register('status')}
               className="mt-1 w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
             >
               <option>Active</option>
-              <option>Suspended</option>
+              <option>Inactive</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-slate-600 mb-2 block">Roles *</label>
+          <label className="text-xs font-medium text-slate-600 mb-2 block">Roles{editing ? '' : ' *'}</label>
           <RoleCheckboxes
             value={roles}
             onChange={(next) => setValue('roles', next, { shouldDirty: true })}
