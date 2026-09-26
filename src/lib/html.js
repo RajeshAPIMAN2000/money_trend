@@ -36,11 +36,14 @@ export function decodeHtmlEntities(value) {
   return s
 }
 
-function looksLikeStrippedHtml(value) {
-  if (/<[a-z/!]/i.test(value)) return false
-  return /pstrong\b|\/pp|\/strong|\/em|\/span|class="ql-|style="color:/i.test(value)
-    || /(?:^|\n)\s*br\s*(?:\n|$)/i.test(value)
+function hasStrippedMarkers(value) {
+  return /pstrong\b|pem\b|\/pp|(?<!<)\/strong|(?<!<)\/em\b|class="ql-[^"]*"(?:br|strong|em|span)|p\s+class="|pbr\/p|(?:^|\n)\s*br\s*(?:\n|$)/i.test(value)
     || /(?:^|\n)(?:strong|em|h[1-6])[A-Z0-9]/m.test(value)
+    || /pstrong\s+style="/i.test(value)
+}
+
+function looksLikeStrippedHtml(value) {
+  return hasStrippedMarkers(value)
 }
 
 /**
@@ -54,6 +57,9 @@ export function restoreStrippedHtmlTags(value) {
 
   let html = original
 
+  html = html.replace(/p\s+class="([^"]*)"\s*br(?![a-z])/gi, '<p class="$1"><br></p>')
+  html = html.replace(/p\s+class="([^"]*)"(strong|em|span|b|i|u|h[1-6])/gi, '<p class="$1"><$2>')
+  html = html.replace(/pbr\/p/gi, '<p><br></p>')
   html = html.replace(/class="(ql-align-[^"]*)"br/gi, '<p class="$1"><br></p>')
   html = html.replace(/class="(ql-align-[^"]*)"(strong|em|span|b|i|u|h[1-6])/gi, '<p class="$1"><$2>')
   html = html.replace(/class="([^"]*)"(strong|em|span|br|b|i|u|h[1-6]|p|li|div)/gi, '<$2 class="$1">')
@@ -92,9 +98,12 @@ function stripUnsafeMarkup(html) {
     .replace(/\son\w+='[^']*'/gi, '')
 }
 
-/** HTML safe to pass to dangerouslySetInnerHTML. Plain text is returned unchanged. */
+/** Turn editor HTML, escaped HTML, or stripped Quill markup into renderable HTML. */
 export function prepareRichHtml(value) {
   const decoded = decodeHtmlEntities(value)
-  if (/<[a-z][\s\S]*>/i.test(decoded)) return stripUnsafeMarkup(decoded)
-  return stripUnsafeMarkup(restoreStrippedHtmlTags(decoded))
+  if (!decoded) return ''
+
+  const pieces = decoded.split(/(<[^>]+>)/g)
+  const html = pieces.map((part) => (part.startsWith('<') ? part : restoreStrippedHtmlTags(part))).join('')
+  return stripUnsafeMarkup(html)
 }
