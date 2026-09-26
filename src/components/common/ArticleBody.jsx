@@ -13,6 +13,9 @@ const RICH_CLASS = [
   '[&_li]:my-1',
   '[&_li[data-list=bullet]]:list-disc',
   '[&_a]:text-secondary [&_a]:underline',
+  '[&_.ql-align-center]:text-center',
+  '[&_.ql-align-right]:text-right',
+  '[&_.ql-align-justify]:text-justify',
   '[&_blockquote]:border-l-4 [&_blockquote]:border-slate-200 [&_blockquote]:pl-4 [&_blockquote]:text-slate-600',
 ].join(' ')
 

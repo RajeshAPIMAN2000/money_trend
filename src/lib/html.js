@@ -1,4 +1,3 @@
-const TAG_PATTERN = 'blockquote|strong|strike|span|code|h1|h2|h3|h4|h5|h6|em|ul|ol|li|br|hr|pre|div|sub|sup|img|u|b|i|s|p'
 export function stripHtml(html) {
   return String(html || '')
     .replace(/<[^>]*>/g, ' ')
@@ -39,54 +38,63 @@ export function decodeHtmlEntities(value) {
 
 function looksLikeStrippedHtml(value) {
   if (/<[a-z/!]/i.test(value)) return false
-  return /\/pp|\/strong|\/em|\/span|\/h[1-6]|\/li|\/br/i.test(value)
-    || /(?:^|\n)(?:strong|em|h[1-6]|b|i|u)[A-Z0-9]/m.test(value)
-    || /(?:strong|span|h[1-6]|p)\s+[a-z-]+=\s*"/i.test(value)
+  return /pstrong\b|\/pp|\/strong|\/em|\/span|class="ql-|style="color:/i.test(value)
+    || /(?:^|\n)\s*br\s*(?:\n|$)/i.test(value)
+    || /(?:^|\n)(?:strong|em|h[1-6])[A-Z0-9]/m.test(value)
 }
 
 /**
- * Stored articles sometimes lose `<` and `>` and arrive as
- * `Title/ppBody strongBold/strong more`. Put the brackets back
- * so headings, bold, italics and paragraphs render.
+ * Quill markup sometimes arrives without `<` and `>`, for example
+ * `pstrong style="color: ..."Title` or `class="ql-align-center"br`.
+ * Rebuild real tags so color, alignment, bold and breaks render.
  */
 export function restoreStrippedHtmlTags(value) {
   const original = String(value || '')
   if (!looksLikeStrippedHtml(original)) return original
 
   let html = original
-    .replace(/\/pp/g, '\u0000PP\u0000')
-    .replace(/pbr\/p/g, '\u0000BR\u0000')
 
-  html = html.replace(new RegExp(`/(${TAG_PATTERN})(?![a-z])`, 'g'), '</$1>')
-  html = html
-    .replace(/\u0000PP\u0000/g, '</p><p>')
-    .replace(/\u0000BR\u0000/g, '<p><br></p>')
+  html = html.replace(/class="(ql-align-[^"]*)"br/gi, '<p class="$1"><br></p>')
+  html = html.replace(/class="(ql-align-[^"]*)"(strong|em|span|b|i|u|h[1-6])/gi, '<p class="$1"><$2>')
+  html = html.replace(/class="([^"]*)"(strong|em|span|br|b|i|u|h[1-6]|p|li|div)/gi, '<$2 class="$1">')
 
-  const openWithAttrs = new RegExp(
-    `(^|[\\n>])(${TAG_PATTERN})((?:\\s+[a-zA-Z_:][\\w:.-]*=(?:"[^"]*"|'[^']*'))+)`,
-    'g',
-  )
-  html = html.replace(openWithAttrs, '$1<$2$3>')
+  html = html.replace(/pstrong\s+style="([^"]*)"/gi, '<p><strong style="$1">')
+  html = html.replace(/pstrong\s+class="([^"]*)"/gi, '<p><strong class="$1">')
+  html = html.replace(/p(em|span|b|i|u|h[1-6])\s+style="([^"]*)"/gi, '<p><$1 style="$2">')
+  html = html.replace(/(^|[\n>])(strong|em|span|h[1-6]|p)\s+style="([^"]*)"/gi, '$1<$2 style="$3">')
 
-  const openBeforeText = new RegExp(
-    `(^|[\\n>])(${TAG_PATTERN})(?=[A-Z0-9₹•·])`,
-    'g',
-  )
-  html = html.replace(openBeforeText, '$1<$2>')
+  html = html.replace(/(?<!<)\/pp/g, '</p><p>')
+  html = html.replace(/(?<!<)\/strong/gi, '</strong>')
+  html = html.replace(/(?<!<)\/em(?![a-z])/gi, '</em>')
+  html = html.replace(/(?<!<)\/span(?![a-z])/gi, '</span>')
+  html = html.replace(/(?<!<)\/h([1-6])/gi, '</h$1>')
+  html = html.replace(/(?<!<)\/li(?![a-z])/gi, '</li>')
+  html = html.replace(/(?<!<)\/ul(?![a-z])/gi, '</ul>')
+  html = html.replace(/(?<!<)\/ol(?![a-z])/gi, '</ol>')
+  html = html.replace(/(?<!<)\/br/gi, '<br>')
+  html = html.replace(/(?<!<)\/p(?![a-z])/gi, '</p>')
 
-  const openAfterSpace = /(^|[\n\s])(blockquote|strong|strike|span|h1|h2|h3|h4|h5|h6|em)(?=[A-Z0-9₹•·])/g
-  html = html.replace(openAfterSpace, '$1<$2>')
+  html = html.replace(/pstrong(?=[A-Z0-9₹•·])/g, '<p><strong>')
+  html = html.replace(/(^|[\n>])(strong|em|h[1-6])(?=[A-Z0-9₹•·])/g, '$1<$2>')
+  html = html.replace(/(^|[\n\s])(strong|em|h[1-6])(?=[A-Z0-9₹•·])/g, '$1<$2>')
 
-  if (html.includes('</p>') && !html.trimStart().startsWith('<')) {
-    html = `<p>${html}`
-  }
+  html = html.replace(/(^|\n)\s*br\s*(?=\n|$)/gi, '$1<br>')
+  html = html.replace(/\n{2,}/g, '<br><br>')
+  html = html.replace(/\n/g, '<br>')
 
   return html
+}
+
+function stripUnsafeMarkup(html) {
+  return String(html || '')
+    .replace(/<\s*script[\s\S]*?>[\s\S]*?<\s*\/\s*script\s*>/gi, '')
+    .replace(/\son\w+="[^"]*"/gi, '')
+    .replace(/\son\w+='[^']*'/gi, '')
 }
 
 /** HTML safe to pass to dangerouslySetInnerHTML. Plain text is returned unchanged. */
 export function prepareRichHtml(value) {
   const decoded = decodeHtmlEntities(value)
-  const restored = restoreStrippedHtmlTags(decoded)
-  return restored
+  if (/<[a-z][\s\S]*>/i.test(decoded)) return stripUnsafeMarkup(decoded)
+  return stripUnsafeMarkup(restoreStrippedHtmlTags(decoded))
 }
