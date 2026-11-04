@@ -1,5 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
-import { articleHtmlFromApi, restoreStrippedArticleMarkup, stripHtml } from './html.js'
+import { articleHtmlFromApi, restoreStrippedArticleMarkup, stripHtml, unescapeApiHtml } from './html.js'
 
 const unwrap = (payload) => payload?.data ?? payload ?? {}
 

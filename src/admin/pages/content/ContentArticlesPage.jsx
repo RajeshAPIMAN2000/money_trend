@@ -65,7 +65,7 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
     }
 
     const handleUpdate = async (form) => {
-      if (!editId) return
+      if (editId == null) return
       setFormError('')
       try {
         const current = editItem ?? itemMap[String(editId)]
@@ -219,7 +219,7 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
         />
 
         <ArticleDetailModal
-          open={Boolean(viewId)}
+          open={viewId != null}
           onClose={() => setViewId(null)}
           item={viewItem ?? itemMap[String(viewId)]}
           canModerate={canModerate}
@@ -258,7 +258,7 @@ export function createContentArticlesPage({ type, useList, useItem, useMutations
         />
 
         <ArticleFormModal
-          open={Boolean(editId)}
+          open={editId != null}
           onClose={() => { setEditId(null); setFormError('') }}
           title="Edit Article"
           description={isSub

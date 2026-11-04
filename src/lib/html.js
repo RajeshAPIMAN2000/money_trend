@@ -42,7 +42,7 @@ export function articleHtmlFromApi(item) {
 export function restoreStrippedArticleMarkup(value) {
   const text = String(value || '').trim()
   if (!text || /<\/?(?:p|h[1-6]|ul|ol|li|strong|em|br)\b/i.test(text)) return text
-  if (!/^p(?=[A-Z0-9])/m.test(text) && !/\/p\s*p(?=[A-Z0-9])/m.test(text)) return text
+  if (!/(?:^|\/)\s*(?:p|h[1-6])(?=[A-Z0-9])/m.test(text)) return text
 
   // Escape original text before inserting a small, known set of safe tags.
   const escaped = text
@@ -50,6 +50,12 @@ export function restoreStrippedArticleMarkup(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
   return escaped
+    // Restore heading boundaries first (for example `/p h2Start.../h2`).
+    .replace(/\/p\s*h([1-6])(?=[A-Z0-9])/gi, '</p><h$1>')
+    .replace(/\/h([1-6])\s*p(?=[A-Z0-9])/gi, '</h$1><p>')
+    .replace(/\/h([1-6])\s*h([1-6])(?=[A-Z0-9])/gi, '</h$1><h$2>')
+    .replace(/^h([1-6])(?=[A-Z0-9])/gim, '<h$1>')
+    .replace(/\/h([1-6])(?=\s|$)/gi, '</h$1>')
     .replace(/\/p\s*p(?=[A-Z0-9])/g, '</p><p>')
     .replace(/^p(?=[A-Z0-9])/gm, '<p>')
     .replace(/\/p\s*$/g, '</p>')
