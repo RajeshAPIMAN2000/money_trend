@@ -107,7 +107,9 @@ export function buildArticleFormData(fields, { isSubAdmin = false } = {}) {
   const html = String(fields.content || fields.description || '')
   fd.append('heading', title)
   fd.append('title', title)
-  fd.append('content', html)
+  // The API's articleHtmlFromApi() treats `description` as the canonical body.
+  // Sending the same rich text in both fields can make backends that merge
+  // aliases persist the body more than once (seen on the Hostinger deployment).
   fd.append('description', html)
   fd.append('category', fields.category ?? '')
 
