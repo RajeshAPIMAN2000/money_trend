@@ -6,6 +6,7 @@ import Badge from '../ui/Badge.jsx'
 const slides = [
   {
     image: '/assets/images/Grow Your Wealth Smarter.png',
+    webpSrcSet: '/assets/optimized/home-hero-v1-640.webp 640w, /assets/optimized/home-hero-v1-960.webp 960w, /assets/optimized/home-hero-v1-1600.webp 1600w, /assets/optimized/home-hero-v1-1920.webp 1920w',
     alt: 'Grow Your Wealth Smarter',
     badge: '🚀 New: 9.4% FD rates from Shriram Finance',
     cta: { primary: { to: '/kyc', label: 'Start Investing Free' }, secondary: { to: '/calculators', label: 'Try Calculators' } },
@@ -19,6 +20,7 @@ const slides = [
   // },
   {
     image: '/assets/images/Secure Returns, Guaranteed.png',
+    webpSrcSet: '/assets/optimized/home-hero-v1-secure-640.webp 640w, /assets/optimized/home-hero-v1-secure-960.webp 960w, /assets/optimized/home-hero-v1-secure-1600.webp 1600w, /assets/optimized/home-hero-v1-secure-1920.webp 1920w',
     alt: 'Secure Returns, Guaranteed — FD and RD',
     badge: '🏦 Up to 9.5% p.a. on FDs',
     cta: { primary: { to: '/fd-rd', label: 'Browse FD & RD' }, secondary: { to: '/kyc', label: 'Complete KYC' } },
@@ -72,12 +74,19 @@ export default function HeroBanner() {
             }`}
             aria-hidden={i !== active}
           >
-            <img
-              src={encodeURI(s.image)}
-              alt={s.alt}
-              className={`absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center ${i === active ? 'animate-ken-burns' : ''}`}
-              fetchpriority={i === 0 ? 'high' : 'low'}
-            />
+            <picture>
+              <source type="image/webp" srcSet={i === active ? s.webpSrcSet : undefined} sizes="100vw" />
+              <img
+                src={i === active ? encodeURI(s.image) : undefined}
+                alt={s.alt}
+                width={2179}
+                height={722}
+                loading={i === 0 || i === active ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchpriority={i === 0 || i === active ? 'high' : 'low'}
+                className={`absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center ${i === active ? 'animate-ken-burns' : ''}`}
+              />
+            </picture>
             {/* Light bottom scrim for CTAs — keeps headline art in the image visible */}
             <div className="absolute inset-0 bg-gradient-to-t from-primary/50 via-transparent to-transparent" />
           </div>

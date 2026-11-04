@@ -73,6 +73,18 @@ export function useCibilUnlock({ enabled = true } = {}) {
   })
 }
 
+export function useCivilScoreUnlock({ enabled = true, reportRef, checkId } = {}) {
+  return useQuery({
+    queryKey: ['payments', 'civil-score', reportRef || null, checkId || null],
+    queryFn: async () => {
+      const result = await api.getCivilScoreUnlockStatus({ reportRef, checkId })
+      return result?.data ?? result
+    },
+    enabled: Boolean(enabled && (reportRef || checkId)),
+    retry: false,
+  })
+}
+
 export function useCreateDummyPayment() {
   return useMutation({
     mutationFn: async (input) => {

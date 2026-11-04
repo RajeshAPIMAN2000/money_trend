@@ -1,73 +1,70 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Navbar from './components/common/Navbar.jsx'
 import Footer from './components/common/Footer.jsx'
-import Home from './pages/Home.jsx'
-import FDMarketplace from './pages/FDMarketplace.jsx'
-import BankDetail from './pages/BankDetail.jsx'
-// import MutualFunds from './pages/MutualFunds.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import News from './pages/News.jsx'
-import Goals from './pages/Goals.jsx'
-import Calculators from './pages/Calculators.jsx'
-import Support from './pages/Support.jsx'
-import Notifications from './pages/Notifications.jsx'
-import KYC from './pages/KYC.jsx'
-import Profile from './pages/Profile.jsx'
-import Blog from './pages/Blog.jsx'
-import BlogArticle from './pages/BlogArticle.jsx'
-import NewsArticle from './pages/NewsArticle.jsx'
-import Terms from './pages/Terms.jsx'
-import Privacy from './pages/Privacy.jsx'
-import Refund from './pages/Refund.jsx'
-import Products from './pages/Products.jsx'
-import ManualKYCPage from './pages/onboarding/ManualKYCPage.jsx'
-import NomineePage from './pages/onboarding/NomineePage.jsx'
-import DigiLockerCallbackPage from './pages/onboarding/DigiLockerCallbackPage.jsx'
-import RegistrationSuccessPage from './pages/onboarding/RegistrationSuccessPage.jsx'
+const Home = lazy(() => import('./pages/Home.jsx'))
+const FDMarketplace = lazy(() => import('./pages/FDMarketplace.jsx'))
+const BankDetail = lazy(() => import('./pages/BankDetail.jsx'))
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
+const News = lazy(() => import('./pages/News.jsx'))
+const Goals = lazy(() => import('./pages/Goals.jsx'))
+const Calculators = lazy(() => import('./pages/Calculators.jsx'))
+const Support = lazy(() => import('./pages/Support.jsx'))
+const Notifications = lazy(() => import('./pages/Notifications.jsx'))
+const KYC = lazy(() => import('./pages/KYC.jsx'))
+const Profile = lazy(() => import('./pages/Profile.jsx'))
+const Blog = lazy(() => import('./pages/Blog.jsx'))
+const BlogArticle = lazy(() => import('./pages/BlogArticle.jsx'))
+const NewsArticle = lazy(() => import('./pages/NewsArticle.jsx'))
+const Terms = lazy(() => import('./pages/Terms.jsx'))
+const Privacy = lazy(() => import('./pages/Privacy.jsx'))
+const Refund = lazy(() => import('./pages/Refund.jsx'))
+const Products = lazy(() => import('./pages/Products.jsx'))
+const ManualKYCPage = lazy(() => import('./pages/onboarding/ManualKYCPage.jsx'))
+const NomineePage = lazy(() => import('./pages/onboarding/NomineePage.jsx'))
+const DigiLockerCallbackPage = lazy(() => import('./pages/onboarding/DigiLockerCallbackPage.jsx'))
+const RegistrationSuccessPage = lazy(() => import('./pages/onboarding/RegistrationSuccessPage.jsx'))
 import AuthModalRedirect from './components/auth/AuthModalRedirect.jsx'
-import AuthModal from './components/auth/AuthModal.jsx'
-import CibilCheckModal from './components/cibil/CibilCheckModal.jsx'
-import DummyPaymentModal from './components/payments/DummyPaymentModal.jsx'
-import WalletPopup from './components/wallet/WalletPopup.jsx'
+import GlobalModalHost from './components/common/GlobalModalHost.jsx'
 import { RequireAuth as UserRequireAuth } from './components/auth/ProtectedRoute.jsx'
-import AdminRoot from './admin/AdminRoot.jsx'
-import AdminLayout from './admin/layout/AdminLayout.jsx'
+const AdminRoot = lazy(() => import('./admin/AdminRoot.jsx'))
+const AdminLayout = lazy(() => import('./admin/layout/AdminLayout.jsx'))
 import AdminRequireAuth, { RequireGuest as AdminRequireGuest } from './admin/components/shared/RequireAuth.jsx'
-import AdminDashboard from './admin/pages/AdminDashboard.jsx'
-import ModulePage from './admin/pages/ModulePage.jsx'
-import { LoginPage as AdminLoginPage, ForgotPasswordPage as AdminForgotPasswordPage, ResetPasswordPage } from './admin/pages/auth/AuthPages.jsx'
-import UsersPage from './admin/pages/users/UsersPage.jsx'
-import AddUserPage from './admin/pages/users/AddUserPage.jsx'
-import UserDetailsPage from './admin/pages/users/UserDetailsPage.jsx'
-import EditUserPage from './admin/pages/users/EditUserPage.jsx'
-import AdminGoalsPage from './admin/pages/users/AdminGoalsPage.jsx'
-import SubAdminsPage from './admin/pages/users/SubAdminsPage.jsx'
-import UserActivityPage from './admin/pages/users/UserActivityPage.jsx'
-import UserDocumentsPage from './admin/pages/users/UserDocumentsPage.jsx'
-import KYCPage from './admin/pages/kyc/KYCPage.jsx'
-import KYCDetailPage from './admin/pages/kyc/KYCDetailPage.jsx'
-import FixedDepositsPage from './admin/pages/investments/FixedDepositsPage.jsx'
-import RecurringDepositsPage from './admin/pages/investments/RecurringDepositsPage.jsx'
-import PortfolioPage from './admin/pages/portfolio/PortfolioPage.jsx'
-import DepositsPage from './admin/pages/transactions/DepositsPage.jsx'
-import OrdersPage from './admin/pages/transactions/OrdersPage.jsx'
-import WithdrawalsPage from './admin/pages/transactions/WithdrawalsPage.jsx'
-import TransactionsPage from './admin/pages/transactions/TransactionsPage.jsx'
-import NewsPage from './admin/pages/content/NewsPage.jsx'
-import BlogsPage from './admin/pages/content/BlogsPage.jsx'
-import BannersPage from './admin/pages/content/BannersPage.jsx'
-import AdminTestimonialsPage from './admin/pages/content/AdminTestimonialsPage.jsx'
-import SeoManagementPage from './admin/pages/seo/SeoManagementPage.jsx'
-import AdminCreditChecksPage from './admin/pages/credit/AdminCreditChecksPage.jsx'
-import AdminSupportPage from './admin/pages/support/AdminSupportPage.jsx'
-import ContentCreatorPage from './admin/pages/content/ContentCreatorPage.jsx'
-import AdminNotificationsPage from './admin/pages/notifications/AdminNotificationsPage.jsx'
-import SettingsPage from './admin/pages/settings/SettingsPage.jsx'
-import CreditScorePage from './pages/CreditScorePage.jsx'
-import CreditScoreHistoryPage from './pages/CreditScoreHistoryPage.jsx'
-import EquifaxDashboardPage from './pages/EquifaxDashboardPage.jsx'
-import { ProfilePage, ChangePasswordPage } from './admin/pages/profile/ProfilePages.jsx'
+const AdminDashboard = lazy(() => import('./admin/pages/AdminDashboard.jsx'))
+const ModulePage = lazy(() => import('./admin/pages/ModulePage.jsx'))
+const AdminLoginPage = lazy(() => import('./admin/pages/auth/AuthPages.jsx').then((module) => ({ default: module.LoginPage })))
+const AdminForgotPasswordPage = lazy(() => import('./admin/pages/auth/AuthPages.jsx').then((module) => ({ default: module.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import('./admin/pages/auth/AuthPages.jsx').then((module) => ({ default: module.ResetPasswordPage })))
+const UsersPage = lazy(() => import('./admin/pages/users/UsersPage.jsx'))
+const AddUserPage = lazy(() => import('./admin/pages/users/AddUserPage.jsx'))
+const UserDetailsPage = lazy(() => import('./admin/pages/users/UserDetailsPage.jsx'))
+const EditUserPage = lazy(() => import('./admin/pages/users/EditUserPage.jsx'))
+const AdminGoalsPage = lazy(() => import('./admin/pages/users/AdminGoalsPage.jsx'))
+const SubAdminsPage = lazy(() => import('./admin/pages/users/SubAdminsPage.jsx'))
+const KYCPage = lazy(() => import('./admin/pages/kyc/KYCPage.jsx'))
+const KYCDetailPage = lazy(() => import('./admin/pages/kyc/KYCDetailPage.jsx'))
+const FixedDepositsPage = lazy(() => import('./admin/pages/investments/FixedDepositsPage.jsx'))
+const RecurringDepositsPage = lazy(() => import('./admin/pages/investments/RecurringDepositsPage.jsx'))
+const PortfolioPage = lazy(() => import('./admin/pages/portfolio/PortfolioPage.jsx'))
+const DepositsPage = lazy(() => import('./admin/pages/transactions/DepositsPage.jsx'))
+const OrdersPage = lazy(() => import('./admin/pages/transactions/OrdersPage.jsx'))
+const WithdrawalsPage = lazy(() => import('./admin/pages/transactions/WithdrawalsPage.jsx'))
+const TransactionsPage = lazy(() => import('./admin/pages/transactions/TransactionsPage.jsx'))
+const NewsPage = lazy(() => import('./admin/pages/content/NewsPage.jsx'))
+const BlogsPage = lazy(() => import('./admin/pages/content/BlogsPage.jsx'))
+const BannersPage = lazy(() => import('./admin/pages/content/BannersPage.jsx'))
+const AdminTestimonialsPage = lazy(() => import('./admin/pages/content/AdminTestimonialsPage.jsx'))
+const SeoManagementPage = lazy(() => import('./admin/pages/seo/SeoManagementPage.jsx'))
+const AdminCreditChecksPage = lazy(() => import('./admin/pages/credit/AdminCreditChecksPage.jsx'))
+const AdminSupportPage = lazy(() => import('./admin/pages/support/AdminSupportPage.jsx'))
+const ContentCreatorPage = lazy(() => import('./admin/pages/content/ContentCreatorPage.jsx'))
+const AdminNotificationsPage = lazy(() => import('./admin/pages/notifications/AdminNotificationsPage.jsx'))
+const SettingsPage = lazy(() => import('./admin/pages/settings/SettingsPage.jsx'))
+const CreditScorePage = lazy(() => import('./pages/CreditScorePage.jsx'))
+const CreditScoreHistoryPage = lazy(() => import('./pages/CreditScoreHistoryPage.jsx'))
+const EquifaxDashboardPage = lazy(() => import('./pages/EquifaxDashboardPage.jsx'))
+const ProfilePage = lazy(() => import('./admin/pages/profile/ProfilePages.jsx').then((module) => ({ default: module.ProfilePage })))
+const ChangePasswordPage = lazy(() => import('./admin/pages/profile/ProfilePages.jsx').then((module) => ({ default: module.ChangePasswordPage })))
 import { moduleRegistry } from './admin/data/moduleRegistry.js'
 import RequirePermission from './admin/components/shared/RequirePermission.jsx'
 import SeoHead from './components/common/SeoHead.jsx'
@@ -121,10 +118,8 @@ export default function App() {
   return (
     <>
       <AuthModalRedirect />
-      <AuthModal />
-      <CibilCheckModal />
-      <DummyPaymentModal />
-      <WalletPopup />
+      <GlobalModalHost />
+      <Suspense fallback={null}>
       <Routes>
       {/* Legacy auth URLs → handled by AuthModalRedirect in PublicApp */}
       <Route path="/login" element={<Navigate to="/?auth=login" replace />} />
@@ -192,6 +187,7 @@ export default function App() {
       {/* Public site */}
       <Route path="*" element={<PublicApp />} />
       </Routes>
+      </Suspense>
     </>
   )
 }

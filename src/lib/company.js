@@ -23,4 +23,8 @@ export const SOCIAL_LINKS = [
     name: 'Instagram',
     href: 'https://www.instagram.com/moneytrendinc?utm_source=qr&igsi=eGxrZjRydjJiM3pp',
   },
+  {
+    name: 'Threads',
+    href: 'https://www.threads.com/@moneytrendinc',
+  },
 ]

@@ -1,7 +1,6 @@
 import { cn } from '../../lib/utils.js'
-import logoImg from '../../assets/images/money-trend-logo.png'
 
-export const LOGO_SRC = logoImg
+export const LOGO_SRC = '/assets/images/money-trend-logo.png'
 
 const variants = {
   /** Navbar — 85×85 brand mark */
@@ -25,18 +24,34 @@ export default function MoneyTrendLogo({
   ...props
 }) {
   const styleClass = size ? variants[size] || size : variants[variant] || variants.md
+  const imageVariant = variants[variant] ? variant : variants[size] ? size : 'md'
+  const imageSizes = {
+    navbar: '85px',
+    footer: '200px',
+    auth: '320px',
+    icon: '40px',
+    md: '144px',
+    sm: '128px',
+  }
 
   return (
-    <img
-      src={logoImg}
-      alt={alt}
-      width={168}
-      height={40}
-      className={cn(styleClass, className)}
-      draggable={false}
-      loading="eager"
-      decoding="async"
-      {...props}
-    />
+    <picture className="block shrink-0">
+      <source
+        type="image/webp"
+        srcSet="/assets/optimized/money-trend-logo-v1-128.webp 128w, /assets/optimized/money-trend-logo-v1-256.webp 256w, /assets/optimized/money-trend-logo-v1-384.webp 384w"
+        sizes={imageSizes[imageVariant]}
+      />
+      <img
+        src={LOGO_SRC}
+        alt={alt}
+        width={500}
+        height={500}
+        className={cn(styleClass, className)}
+        draggable={false}
+        loading="eager"
+        decoding="async"
+        {...props}
+      />
+    </picture>
   )
 }

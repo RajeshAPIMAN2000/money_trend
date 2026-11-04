@@ -1,3 +1,4 @@
+/** Remove tags for labels, search text, and empty checks. Never use this on article HTML sent to the API. */
 export function stripHtml(html) {
   return String(html || '')
     .replace(/<[^>]*>/g, ' ')
@@ -11,99 +12,40 @@ export function stripHtml(html) {
 }
 
 export function isEmptyHtml(html) {
-  return !stripHtml(prepareRichHtml(html))
+  return !stripHtml(html)
 }
 
 export function isHtmlContent(value) {
-  return /<[a-z][\s\S]*>/i.test(String(prepareRichHtml(value) || ''))
+  return /<[a-z][\s\S]*>/i.test(String(value || ''))
 }
 
-/** Turn `&lt;h1&gt;` (and double-escaped) into real tags. */
-export function decodeHtmlEntities(value) {
-  let s = String(value || '')
-  for (let i = 0; i < 3; i += 1) {
-    const next = s
-      .replace(/&amp;/gi, '&')
-      .replace(/&lt;/gi, '<')
-      .replace(/&gt;/gi, '>')
-      .replace(/&quot;/gi, '"')
-      .replace(/&#0*39;|&apos;/gi, "'")
-      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-      .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
-    if (next === s) break
-    s = next
-  }
+/** Decode GET rows stored as &lt;h2&gt;... until they are saved again. */
+export function unescapeApiHtml(value) {
+  const s = String(value ?? '')
+  if (!s.includes('&lt;') && !s.includes('&amp;lt;')) return s
   return s
+    .replace(/&amp;lt;/gi, '<')
+    .replace(/&amp;gt;/gi, '>')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&amp;/gi, '&')
 }
 
-function hasStrippedMarkers(value) {
-  return /pstrong\b|pem\b|\/pp|(?<!<)\/strong|(?<!<)\/em\b|class="ql-[^"]*"(?:br|strong|em|span)|p\s+class="|pbr\/p|(?:^|\n)\s*br\s*(?:\n|$)/i.test(value)
-    || /(?:^|\n)(?:strong|em|h[1-6])[A-Z0-9]/m.test(value)
-    || /pstrong\s+style="/i.test(value)
-}
-
-function looksLikeStrippedHtml(value) {
-  return hasStrippedMarkers(value)
+/** HTML from GET: description and content are the same stored string. */
+export function articleHtmlFromApi(item) {
+  if (!item || typeof item !== 'object') return ''
+  return unescapeApiHtml(item.description || item.content || item.body || item.html_content || '')
 }
 
 /**
- * Quill markup sometimes arrives without `<` and `>`, for example
- * `pstrong style="color: ..."Title` or `class="ql-align-center"br`.
- * Rebuild real tags so color, alignment, bold and breaks render.
+ * Light guard before render. The API should store sanitized HTML.
+ * This only removes scripts, event handlers, and javascript: URLs.
+ * It does not rebuild malformed tag text such as "h2Key Takeaways".
  */
-export function restoreStrippedHtmlTags(value) {
-  const original = String(value || '')
-  if (!looksLikeStrippedHtml(original)) return original
-
-  let html = original
-
-  html = html.replace(/p\s+class="([^"]*)"\s*br(?![a-z])/gi, '<p class="$1"><br></p>')
-  html = html.replace(/p\s+class="([^"]*)"(strong|em|span|b|i|u|h[1-6])/gi, '<p class="$1"><$2>')
-  html = html.replace(/pbr\/p/gi, '<p><br></p>')
-  html = html.replace(/class="(ql-align-[^"]*)"br/gi, '<p class="$1"><br></p>')
-  html = html.replace(/class="(ql-align-[^"]*)"(strong|em|span|b|i|u|h[1-6])/gi, '<p class="$1"><$2>')
-  html = html.replace(/class="([^"]*)"(strong|em|span|br|b|i|u|h[1-6]|p|li|div)/gi, '<$2 class="$1">')
-
-  html = html.replace(/pstrong\s+style="([^"]*)"/gi, '<p><strong style="$1">')
-  html = html.replace(/pstrong\s+class="([^"]*)"/gi, '<p><strong class="$1">')
-  html = html.replace(/p(em|span|b|i|u|h[1-6])\s+style="([^"]*)"/gi, '<p><$1 style="$2">')
-  html = html.replace(/(^|[\n>])(strong|em|span|h[1-6]|p)\s+style="([^"]*)"/gi, '$1<$2 style="$3">')
-
-  html = html.replace(/(?<!<)\/pp/g, '</p><p>')
-  html = html.replace(/(?<!<)\/strong/gi, '</strong>')
-  html = html.replace(/(?<!<)\/em(?![a-z])/gi, '</em>')
-  html = html.replace(/(?<!<)\/span(?![a-z])/gi, '</span>')
-  html = html.replace(/(?<!<)\/h([1-6])/gi, '</h$1>')
-  html = html.replace(/(?<!<)\/li(?![a-z])/gi, '</li>')
-  html = html.replace(/(?<!<)\/ul(?![a-z])/gi, '</ul>')
-  html = html.replace(/(?<!<)\/ol(?![a-z])/gi, '</ol>')
-  html = html.replace(/(?<!<)\/br/gi, '<br>')
-  html = html.replace(/(?<!<)\/p(?![a-z])/gi, '</p>')
-
-  html = html.replace(/pstrong(?=[A-Z0-9₹•·])/g, '<p><strong>')
-  html = html.replace(/(^|[\n>])(strong|em|h[1-6])(?=[A-Z0-9₹•·])/g, '$1<$2>')
-  html = html.replace(/(^|[\n\s])(strong|em|h[1-6])(?=[A-Z0-9₹•·])/g, '$1<$2>')
-
-  html = html.replace(/(^|\n)\s*br\s*(?=\n|$)/gi, '$1<br>')
-  html = html.replace(/\n{2,}/g, '<br><br>')
-  html = html.replace(/\n/g, '<br>')
-
-  return html
-}
-
-function stripUnsafeMarkup(html) {
+export function sanitizeArticleHtml(html) {
   return String(html || '')
     .replace(/<\s*script[\s\S]*?>[\s\S]*?<\s*\/\s*script\s*>/gi, '')
-    .replace(/\son\w+="[^"]*"/gi, '')
-    .replace(/\son\w+='[^']*'/gi, '')
-}
-
-/** Turn editor HTML, escaped HTML, or stripped Quill markup into renderable HTML. */
-export function prepareRichHtml(value) {
-  const decoded = decodeHtmlEntities(value)
-  if (!decoded) return ''
-
-  const pieces = decoded.split(/(<[^>]+>)/g)
-  const html = pieces.map((part) => (part.startsWith('<') ? part : restoreStrippedHtmlTags(part))).join('')
-  return stripUnsafeMarkup(html)
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[^'"]*\2/gi, ' $1="#"')
 }

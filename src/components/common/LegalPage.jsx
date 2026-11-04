@@ -5,18 +5,27 @@ import {
   SUPPORT_EMAIL,
 } from '../../lib/company.js'
 
-export default function LegalPage({ title, lastUpdated, children }) {
+export default function LegalPage({
+  title,
+  lastUpdated,
+  children,
+  showNotice = true,
+  customerCareDisplay = CUSTOMER_CARE_DISPLAY,
+  customerCareTel = CUSTOMER_CARE_TEL,
+}) {
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
       <Link to="/" className="text-sm font-semibold text-secondary hover:underline">← Back to Home</Link>
       <header className="mt-6 pb-8 border-b border-slate-200">
         <h1 className="text-3xl md:text-4xl font-display font-bold text-primary">{title}</h1>
         <p className="mt-2 text-sm text-slate-500">Last updated: {lastUpdated}</p>
-        <div className="mt-5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <strong>Important notice:</strong> MoneyTrend Private Limited is a technology and financial-information
-          platform and is not a lender, loan provider, loan marketplace, loan referral platform or LSP unless separately
-          authorised. Third-party bank, NBFC and credit-bureau products remain subject to their own terms and eligibility.
-        </div>
+        {showNotice && (
+          <div className="mt-5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <strong>Important notice:</strong> MoneyTrend Private Limited is a technology and financial-information
+            platform and is not a lender, loan provider, loan marketplace, loan referral platform or LSP unless separately
+            authorised. Third-party bank, NBFC and credit-bureau products remain subject to their own terms and eligibility.
+          </div>
+        )}
       </header>
       <div className="prose prose-slate max-w-none mt-8 legal-content">{children}</div>
       <footer className="mt-12 pt-8 border-t border-slate-200 text-sm text-slate-600">
@@ -24,7 +33,7 @@ export default function LegalPage({ title, lastUpdated, children }) {
           Questions? Contact{' '}
           <a href={`mailto:${SUPPORT_EMAIL}`} className="text-secondary font-medium hover:underline">{SUPPORT_EMAIL}</a>
           {' '}or call{' '}
-          <a href={`tel:${CUSTOMER_CARE_TEL}`} className="text-secondary font-medium hover:underline">{CUSTOMER_CARE_DISPLAY}</a>
+          <a href={`tel:${customerCareTel}`} className="text-secondary font-medium hover:underline">{customerCareDisplay}</a>
           {' '}· <Link to="/support" className="text-secondary font-medium hover:underline">Support</Link>
         </p>
         <p className="mt-2">

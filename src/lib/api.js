@@ -288,6 +288,14 @@ export const api = {
     const q = new URLSearchParams(params).toString()
     return request(`/admin/credit-checks${q ? `?${q}` : ''}`, { admin: true })
   },
+  getAdminCivilScorePayments: (params = {}) => {
+    const q = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value != null && value !== '') q.set(key, String(value))
+    })
+    const qs = q.toString()
+    return request(`/admin/civil-score-payments${qs ? `?${qs}` : ''}`, { admin: true })
+  },
 
   /**
    * Equifax consumer engagement (authenticated) — MoneyTrend JWT only.
@@ -577,13 +585,13 @@ export const api = {
       admin: true,
     }),
 
-  // Articles — Blogs & News
+  // Public blogs & news — GET /api/blogs, /api/blogs/:id, /api/news, /api/news/:id
   getBlogs: ({ limit = 10, offset = 0 } = {}) =>
-    request(`/articles/blogs?limit=${limit}&offset=${offset}`),
-  getBlog: (id) => request(`/articles/blogs/${encodeURIComponent(id)}`),
+    request(`/blogs?limit=${limit}&offset=${offset}`),
+  getBlog: (id) => request(`/blogs/${encodeURIComponent(id)}`),
   getNews: ({ limit = 10, offset = 0 } = {}) =>
-    request(`/articles/news?limit=${limit}&offset=${offset}`),
-  getNewsArticle: (id) => request(`/articles/news/${encodeURIComponent(id)}`),
+    request(`/news?limit=${limit}&offset=${offset}`),
+  getNewsArticle: (id) => request(`/news/${encodeURIComponent(id)}`),
 
   // Dummy payment gateway
   getDummyPaymentConfig: () => request('/payments/dummy/config'),
@@ -596,6 +604,28 @@ export const api = {
   getDummyCibilUnlock: () => request('/payments/dummy/cibil-unlock'),
   getDummyPaymentOrder: (orderId) =>
     request(`/payments/dummy/${encodeURIComponent(orderId)}`),
+  createCivilScorePaymentOrder: (body) =>
+    request('/payments/civil-score/order', { method: 'POST', body }),
+  createCivilScoreQrPayment: (body) =>
+    request('/payments/civil-score/qr', { method: 'POST', body }),
+  getCivilScoreQrStatus: (paymentId) =>
+    request(`/payments/civil-score/qr/${encodeURIComponent(paymentId)}/status`),
+  verifyCivilScorePayment: (body) =>
+    request('/payments/civil-score/verify', { method: 'POST', body }),
+  getCivilScoreUnlockStatus: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.reportRef) q.set('report_ref', String(params.reportRef))
+    if (params.checkId != null) q.set('check_id', String(params.checkId))
+    const qs = q.toString()
+    return request(`/payments/civil-score/status${qs ? `?${qs}` : ''}`)
+  },
+  downloadCivilScoreReport: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.reportRef) q.set('report_ref', String(params.reportRef))
+    if (params.checkId != null) q.set('check_id', String(params.checkId))
+    const qs = q.toString()
+    return request(`/payments/civil-score/download${qs ? `?${qs}` : ''}`)
+  },
 
   // Wallet
   getWallet: () => request('/wallet/'),

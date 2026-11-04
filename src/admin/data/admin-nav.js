@@ -41,6 +41,7 @@ export const adminNav = [
       { label: 'Withdrawals', path: '/admin/withdrawals', icon: ArrowUpFromLine },
       { label: 'Orders', path: '/admin/orders', icon: ShoppingCart },
       { label: 'Transaction History', path: '/admin/transactions', icon: History },
+      { label: 'Civil Checker Payments', path: '/admin/civil-checker-payments', icon: CreditCard },
     ],
   },
   {

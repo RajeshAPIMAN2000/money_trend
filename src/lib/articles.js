@@ -1,5 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
-import { prepareRichHtml, stripHtml } from './html.js'
+import { articleHtmlFromApi, stripHtml, sanitizeArticleHtml } from './html.js'
 
 const BLOG_CATEGORY_COLORS = {
   Beginners: 'bg-secondary',
@@ -52,19 +52,12 @@ function mapArticleItem(item, type = 'blog') {
   const author = extractAuthorName(item, 'MoneyTrend')
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
 
-  const rawDescription = item.description ?? item.excerpt ?? item.summary ?? ''
-  const rawContent = item.content ?? item.body ?? item.html_content ?? ''
-  const descriptionHtml = prepareRichHtml(rawDescription)
-  const contentHtml = prepareRichHtml(rawContent)
-  const tagCount = (value) => (String(value).match(/<[a-z][^>]*>/gi) || []).length
-  const bodyHtml = tagCount(contentHtml) >= tagCount(descriptionHtml)
-    ? (contentHtml || descriptionHtml)
-    : descriptionHtml
+  const bodyHtml = sanitizeArticleHtml(articleHtmlFromApi(item))
 
   return {
     id: item.id,
-    title: stripHtml(prepareRichHtml(item.title ?? item.heading ?? item.name ?? '')) || 'Untitled',
-    excerpt: stripHtml(descriptionHtml || contentHtml),
+    title: stripHtml(item.title ?? item.heading ?? item.name ?? '') || 'Untitled',
+    excerpt: stripHtml(bodyHtml),
     content: bodyHtml,
     category,
     author,
@@ -85,6 +78,7 @@ export function parseArticleList(payload, type = 'blog') {
   const items = root.items
     ?? root.articles
     ?? (type === 'blog' ? root.blogs : root.news)
+    ?? (Array.isArray(root.data) ? root.data : null)
     ?? (Array.isArray(root) ? root : [])
 
   return {

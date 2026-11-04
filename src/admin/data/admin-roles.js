@@ -181,7 +181,9 @@ export function filterAdminNavByRoles(navItems, user) {
     .map((item) => {
       if (item.path && allowedPaths.has(item.path)) return item
       if (item.children?.length) {
-        const children = item.children.filter((c) => allowedPaths.has(c.path))
+        const children = item.children.filter(
+          (c) => c.path !== '/admin/civil-checker-payments' && allowedPaths.has(c.path),
+        )
         if (!children.length) return null
         return { ...item, children }
       }

@@ -37,9 +37,22 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <script>
+      if (window.location.pathname === '/') {
+        const heroPreload = document.createElement('link')
+        heroPreload.rel = 'preload'
+        heroPreload.as = 'image'
+        heroPreload.href = '/assets/optimized/home-hero-v1-640.webp'
+        heroPreload.setAttribute('imagesrcset', '/assets/optimized/home-hero-v1-640.webp 640w, /assets/optimized/home-hero-v1-960.webp 960w, /assets/optimized/home-hero-v1-1600.webp 1600w, /assets/optimized/home-hero-v1-1920.webp 1920w')
+        heroPreload.setAttribute('imagesizes', '100vw')
+        heroPreload.fetchPriority = 'high'
+        document.head.appendChild(heroPreload)
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
   </head>
   <body>
     <div id="root"></div>

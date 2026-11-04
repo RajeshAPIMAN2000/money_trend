@@ -172,19 +172,31 @@ export default function Aurora({
     ctn.appendChild(gl.canvas)
 
     let animateId = 0
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = (t) => {
-      animateId = requestAnimationFrame(update)
       const { speed: animSpeed = 1.0 } = propsRef.current
       program.uniforms.uTime.value = t * 0.01 * animSpeed * 0.1
-      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0
-      program.uniforms.uBlend.value = propsRef.current.blend ?? blend
-      const stops = propsRef.current.colorStops ?? colorStops
-      program.uniforms.uColorStops.value = stops.map((hex) => {
-        const c = new Color(hex)
-        return [c.r, c.g, c.b]
-      })
       renderer.render({ scene: mesh })
+      if (!document.hidden && !motionQuery.matches) {
+        animateId = requestAnimationFrame(update)
+      }
     }
+
+    const resume = () => {
+      cancelAnimationFrame(animateId)
+      if (!document.hidden) animateId = requestAnimationFrame(update)
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) cancelAnimationFrame(animateId)
+      else resume()
+    }
+    const onMotionChange = () => {
+      if (motionQuery.matches) cancelAnimationFrame(animateId)
+      else resume()
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    motionQuery.addEventListener('change', onMotionChange)
     animateId = requestAnimationFrame(update)
 
     resize()
@@ -192,6 +204,8 @@ export default function Aurora({
     return () => {
       cancelAnimationFrame(animateId)
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      motionQuery.removeEventListener('change', onMotionChange)
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas)
       }

@@ -63,7 +63,8 @@ export default function ArticleFormModal({
     onSubmit({
       ...form,
       title: String(form.title).trim(),
-      content: '',
+      description: form.description || '',
+      content: form.description || '',
       status: isSubAdmin ? 'pending' : form.status,
       resubmit: isSubAdmin ? true : Boolean(form.resubmit),
       image: imageFileRef.current ?? form.image,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { api, getToken } from '../lib/api.js'
+import { api } from '../lib/api.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import {
   parseCompareInvest,
@@ -21,6 +21,8 @@ export function useHomeData() {
   const [tickerItems, setTickerItems] = useState([])
   const [compare, setCompare] = useState(null)
   const [dashboard, setDashboard] = useState(null)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+  const [insights, setInsights] = useState({ blogs: [], news: [] })
 
   useEffect(() => {
     let cancelled = false
@@ -30,28 +32,18 @@ export function useHomeData() {
       setError('')
 
       try {
-        const dashboardPromise = getToken()
-          ? api.getHomeDashboard()
-          : Promise.resolve({ data: { login_required: true, dashboard: null } })
-
-        const [homeRes, productsRes, compareRes, fullRes, dashboardRes] = await Promise.all([
-          api.getHome(),
-          api.getHomeProducts(),
-          api.getHomeCompare(),
-          api.getHomeFull(),
-          dashboardPromise,
-        ])
+        const homeRes = await api.getHome()
 
         if (cancelled) return
 
         const homeData = homeRes?.data ?? homeRes
 
-        setProducts(parseHomeProducts(productsRes))
+        setProducts(parseHomeProducts(homeRes))
         setServices(parseHomeServices(homeRes))
         setTrustStats(parsePlatformStats(homeRes))
         setTickerItems(parseRateTicker(homeRes))
-        setCompare(parseCompareInvest(homeData?.compare_invest ? homeRes : fullRes))
-        setDashboard(parseHomeDashboard(dashboardRes))
+        setCompare(parseCompareInvest(homeRes))
+        setInsights(homeData?.insights ?? { blogs: [], news: [] })
       } catch (err) {
         if (!cancelled) setError(err.message || 'Failed to load home page data')
       } finally {
@@ -66,16 +58,21 @@ export function useHomeData() {
   useEffect(() => {
     if (!isAuthenticated) {
       setDashboard(parseHomeDashboard({ data: { login_required: true, dashboard: null } }))
+      setDashboardLoading(false)
       return undefined
     }
 
     let cancelled = false
+    setDashboardLoading(true)
     api.getHomeDashboard()
       .then((res) => {
         if (!cancelled) setDashboard(parseHomeDashboard(res))
       })
       .catch(() => {
         if (!cancelled) setDashboard(parseHomeDashboard({ data: { login_required: false, dashboard: null } }))
+      })
+      .finally(() => {
+        if (!cancelled) setDashboardLoading(false)
       })
 
     return () => { cancelled = true }
@@ -99,6 +96,8 @@ export function useHomeData() {
     tickerItems,
     compare,
     dashboard,
+    dashboardLoading,
+    insights,
     fetchCompare,
   }
 }

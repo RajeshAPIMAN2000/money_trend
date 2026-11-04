@@ -62,11 +62,11 @@ function useVisitorCounter() {
         const res = await api.recordVisitorHit({
           device_id: deviceId,
           path: window.location.pathname,
-          user_agent: navigator.userAgent,
         })
         const stats = parseVisitorStats(res)
         if (stats.count > 0) setCount(stats.count)
-      } catch {
+      } catch (error) {
+        if (error?.status === 404) return
         try {
           const res = await api.getVisitorStats()
           const stats = parseVisitorStats(res)

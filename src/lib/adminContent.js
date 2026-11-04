@@ -1,5 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
-import { stripHtml } from './html.js'
+import { articleHtmlFromApi, stripHtml } from './html.js'
 
 const unwrap = (payload) => payload?.data ?? payload ?? {}
 
@@ -42,8 +42,9 @@ function mapAdminArticleRow(item) {
     ?? null
   const updatedAt = item.updated_at ?? item.updatedAt ?? item.created_at ?? ''
   const statusValue = String(status).toLowerCase()
-  const description = item.description ?? item.excerpt ?? item.summary ?? ''
-  const content = item.content ?? item.body ?? ''
+  const html = articleHtmlFromApi(item)
+  const description = html
+  const content = html
 
   return {
     id: item.id,
@@ -103,12 +104,11 @@ export function parseAdminArticleDetail(payload, type = 'news') {
 export function buildArticleFormData(fields, { isSubAdmin = false } = {}) {
   const fd = new FormData()
   const title = String(fields.title ?? fields.heading ?? '').trim()
-  const description = fields.description ?? ''
-  fd.append('title', title)
+  const html = String(fields.content || fields.description || '')
   fd.append('heading', title)
-  fd.append('description', description)
-  // No separate content field — description is the body
-  fd.append('content', description)
+  fd.append('title', title)
+  fd.append('content', html)
+  fd.append('description', html)
   fd.append('category', fields.category ?? '')
 
   // Sub Admin posts always go pending; Admin may set draft/published
@@ -149,10 +149,11 @@ export function articleToForm(item) {
   const plainTitle = item.titleHtml && /<[a-z]/i.test(item.titleHtml)
     ? String(item.title || '').trim()
     : String(item.titleHtml ?? item.title ?? item.heading ?? '').trim()
+  const html = unescapeApiHtml(item.description || item.content || articleHtmlFromApi(item.raw || item))
   return {
     title: plainTitle,
-    description: item.description ?? '',
-    content: '',
+    description: html,
+    content: html,
     category: item.category === '—' ? '' : (item.category ?? ''),
     status: item.statusValue ?? 'draft',
     resubmit: rejected,

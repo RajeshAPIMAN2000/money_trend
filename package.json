@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run icons && vite build",
+    "build": "npm run icons && npm run optimize:images && vite build",
     "preview": "vite preview",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "optimize:images": "node scripts/optimize-hero-images.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.2",
@@ -29,6 +30,7 @@
     "autoprefixer": "^10.4.20",
     "pngjs": "^7.0.0",
     "postcss": "^8.4.47",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8"
   }

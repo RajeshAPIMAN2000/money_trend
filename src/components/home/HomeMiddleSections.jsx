@@ -1,14 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import {
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from 'recharts'
 import CivilScoreChecker from './CivilScoreChecker.jsx'
 import TestimonialsSection, { TestimonialsSidebarCard } from './TestimonialsSection.jsx'
 import BlurText from '../react-bits/BlurText.jsx'
@@ -16,8 +8,10 @@ import SlideInContent from '../react-bits/SlideInContent.jsx'
 import { HIDDEN_HOME_PRODUCTS } from '../../lib/home.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useAuthModal } from '../../context/AuthModalContext.jsx'
-import { useArticleList } from '../../hooks/useArticles.js'
+import { parseArticleList } from '../../lib/articles.js'
 import { goalIconSrc } from '../../lib/brandAssets.js'
+
+const FinancialSnapshot = lazy(() => import('./FinancialSnapshot.jsx'))
 
 const PRODUCT_FILTERS = ['Recommended', 'Low Risk', 'High Returns', 'Tax Saving']
 
@@ -116,18 +110,6 @@ const FALLBACK_COMPARE = {
   },
   // 'Mutual Funds': { ... },
 }
-
-const allocationData = [
-  { name: 'Equity', value: 60, color: '#0056D2' },
-  { name: 'Debt', value: 25, color: '#10B981' },
-  { name: 'Gold', value: 10, color: '#F59E0B' },
-  { name: 'Others', value: 5, color: '#94A3B8' },
-]
-
-const netWorthTrend = [
-  { v: 10.2 }, { v: 10.5 }, { v: 10.3 }, { v: 10.8 }, { v: 11.1 },
-  { v: 11.4 }, { v: 11.2 }, { v: 11.8 }, { v: 12.1 }, { v: 12.4 }, { v: 12.75 },
-]
 
 const homeGoals = [
   { name: 'Retirement Plan', target: '₹2.5 Cr', pct: 68, icon: '🌴', iconSrc: goalIconSrc('Retirement Plan'), color: 'bg-amber-100 text-amber-700' },
@@ -331,6 +313,7 @@ function CompareInvestCard({ compare, fetchCompare, loading = false }) {
   const [tenure, setTenure] = useState(compare?.defaultTenure ?? compare?.fd?.tenure ?? '1_year')
   const [compareData, setCompareData] = useState(compare?.fd ?? null)
   const [compareLoading, setCompareLoading] = useState(false)
+  const skippedInitialFetch = useRef(false)
 
   const tabs = ['FD', 'RD']
   const tenureOptions = compareData?.tenureOptions?.length
@@ -351,6 +334,10 @@ function CompareInvestCard({ compare, fetchCompare, loading = false }) {
 
   useEffect(() => {
     if (!fetchCompare || loading) return undefined
+    if (!skippedInitialFetch.current) {
+      skippedInitialFetch.current = true
+      return undefined
+    }
     let cancelled = false
 
     async function loadCompare() {
@@ -504,130 +491,6 @@ function CompareInvestCard({ compare, fetchCompare, loading = false }) {
   )
 }
 
-function FinancialSnapshot({ dashboard, loading = false }) {
-  const snapshot = dashboard?.snapshot
-  const chartAllocation = snapshot?.allocation?.length ? snapshot.allocation : allocationData
-  const chartTrend = snapshot?.netWorthTrend?.length ? snapshot.netWorthTrend : netWorthTrend
-
-  if (!snapshot) {
-    return (
-      <div className="space-y-5 h-full">
-        <h3 className="font-display font-bold text-[#0F172A] text-lg">My Financial Snapshot</h3>
-        <SectionCard className="p-6 h-full grid place-items-center">
-          <p className="text-sm text-slate-500">{loading ? 'Loading snapshot…' : 'No snapshot data available yet.'}</p>
-        </SectionCard>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-5 h-full">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display font-bold text-[#0F172A] text-lg">My Financial Snapshot</h3>
-        <Link to="/dashboard" className="text-xs font-bold text-[#0056D2] hover:text-[#003FA3] transition-colors">
-          View Full →
-        </Link>
-      </div>
-      {loading && <p className="text-xs text-slate-400">Loading snapshot…</p>}
-
-      <SectionCard className="p-6 bg-gradient-to-br from-white to-blue-50/30">
-        <div className="text-xs text-slate-500 font-bold uppercase tracking-wide">Net Worth</div>
-        <div className="flex items-end justify-between gap-3 mt-3">
-          <div>
-            <div className="text-3xl font-display font-bold text-[#0F172A]">{snapshot.netWorthDisplay ?? `₹${formatINR(snapshot.netWorth ?? 0)}`}</div>
-            {snapshot.changePct != null && (
-              <div className="text-xs font-bold text-emerald-600 mt-1 bg-emerald-50 px-3 py-1 rounded-full w-fit">+{snapshot.changePct}% ▲</div>
-            )}
-          </div>
-          <div className="w-32 h-14">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartTrend}>
-                <defs>
-                  <linearGradient id="nwGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10B981" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="v" stroke="#10B981" strokeWidth={2.5} fill="url(#nwGrad)" dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard className="p-6">
-        <div className="text-xs text-slate-500 font-bold uppercase tracking-wide mb-4">Asset Allocation</div>
-        <div className="flex items-center gap-4">
-          <div className="w-28 h-28 shrink-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartAllocation}
-                  dataKey="value"
-                  innerRadius={32}
-                  outerRadius={48}
-                  paddingAngle={2}
-                  strokeWidth={0}
-                >
-                  {chartAllocation.map((a) => (
-                    <Cell key={a.name} fill={a.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex-1 space-y-2">
-            {chartAllocation.map((a) => (
-              <div key={a.name} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: a.color }} />
-                  {a.name}
-                </span>
-                <span className="font-bold text-[#0F172A]">{a.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard className="p-6">
-        <div className="text-xs text-slate-500 font-bold uppercase tracking-wide mb-4">Financial Health Score</div>
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24 shrink-0">
-            <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" strokeWidth="2.5" />
-              <circle
-                cx="18"
-                cy="18"
-                r="15.9"
-                fill="none"
-                stroke="#10B981"
-                strokeWidth="2.5"
-                strokeDasharray={`${snapshot.healthScore ?? 85}, 100`}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 grid place-items-center">
-              <div className="text-center">
-                <div className="text-2xl font-display font-bold text-[#0F172A] leading-none">{snapshot.healthScore ?? 85}</div>
-                <div className="text-xs text-emerald-600 font-bold">{snapshot.healthLabel ?? 'Excellent'}</div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 leading-relaxed font-medium">
-              {snapshot.healthMessage ?? "Great going! You're on track with your savings and investment goals."}
-            </p>
-            <Link to="/dashboard" className="inline-flex mt-3 text-xs font-bold text-[#0056D2] hover:text-[#003FA3] transition-colors">
-              Improve Score →
-            </Link>
-          </div>
-        </div>
-      </SectionCard>
-    </div>
-  )
-}
-
 function MyGoalsCard({ dashboard, loading = false }) {
   const liveGoals = dashboard?.goals ?? []
   const isLoggedIn = dashboard?.isLoggedIn
@@ -666,6 +529,10 @@ function MyGoalsCard({ dashboard, loading = false }) {
                   <img
                     src={g.iconSrc || goalIconSrc(g.goalType || g.name)}
                     alt={g.name}
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-contain p-1"
                   />
                 ) : (
@@ -801,9 +668,7 @@ function ContentThumb({ gradient, image, title }) {
   return <div className={`w-20 h-16 rounded-xl shrink-0 shadow-md ${gradient}`} />
 }
 
-function NewsBlogSection() {
-  const newsQuery = useArticleList('news')
-  const blogQuery = useArticleList('blog')
+function NewsBlogSection({ insights = {}, loading = false, error = '' }) {
 
   const newsThumbs = [
     'bg-gradient-to-br from-blue-400 to-blue-600',
@@ -816,21 +681,21 @@ function NewsBlogSection() {
     'bg-gradient-to-br from-cyan-400 to-blue-500',
   ]
 
-  const newsItems = (newsQuery.items ?? []).slice(0, 3)
-  const blogItems = (blogQuery.items ?? []).slice(0, 3)
+  const newsItems = parseArticleList(insights.news ?? [], 'news').items.slice(0, 3)
+  const blogItems = parseArticleList(insights.blogs ?? [], 'blog').items.slice(0, 3)
 
   return (
     <section className="grid lg:grid-cols-3 gap-6">
       <SectionCard className="p-6">
         <h3 className="font-display font-bold text-[#0F172A] text-lg mb-5">Market Insights & News</h3>
         <div className="space-y-4">
-          {newsQuery.loading && (
+          {loading && (
             <p className="text-sm text-slate-500 py-6 text-center">Loading news…</p>
           )}
-          {!newsQuery.loading && newsQuery.error && (
-            <p className="text-sm text-red-600 py-4 text-center">{newsQuery.error}</p>
+          {!loading && error && (
+            <p className="text-sm text-red-600 py-4 text-center">{error}</p>
           )}
-          {!newsQuery.loading && !newsQuery.error && newsItems.length === 0 && (
+          {!loading && !error && newsItems.length === 0 && (
             <p className="text-sm text-slate-500 py-6 text-center">No news published yet.</p>
           )}
           {newsItems.map((n, i) => (
@@ -865,13 +730,13 @@ function NewsBlogSection() {
       <SectionCard className="p-6">
         <h3 className="font-display font-bold text-[#0F172A] text-lg mb-5">From Our Blog</h3>
         <div className="space-y-4">
-          {blogQuery.loading && (
+          {loading && (
             <p className="text-sm text-slate-500 py-6 text-center">Loading blogs…</p>
           )}
-          {!blogQuery.loading && blogQuery.error && (
-            <p className="text-sm text-red-600 py-4 text-center">{blogQuery.error}</p>
+          {!loading && error && (
+            <p className="text-sm text-red-600 py-4 text-center">{error}</p>
           )}
-          {!blogQuery.loading && !blogQuery.error && blogItems.length === 0 && (
+          {!loading && !error && blogItems.length === 0 && (
             <p className="text-sm text-slate-500 py-6 text-center">No blogs published yet.</p>
           )}
           {blogItems.map((p, i) => (
@@ -958,6 +823,8 @@ export default function HomeMiddleSections({
   trustStats = [],
   compare = null,
   dashboard = null,
+  dashboardLoading = false,
+  insights = {},
   fetchCompare,
 }) {
   const { isAuthenticated } = useAuth()
@@ -986,8 +853,10 @@ export default function HomeMiddleSections({
             <CompareInvestCard compare={compare} fetchCompare={fetchCompare} loading={loading} />
             {isAuthenticated ? (
               <>
-                <FinancialSnapshot dashboard={dashboard} loading={loading} />
-                <MyGoalsCard dashboard={dashboard} loading={loading} />
+                <Suspense fallback={<SectionCard className="min-h-[400px] p-6 grid place-items-center"><p className="text-sm text-slate-500">Loading snapshot…</p></SectionCard>}>
+                  <FinancialSnapshot dashboard={dashboard} loading={dashboardLoading} />
+                </Suspense>
+                <MyGoalsCard dashboard={dashboard} loading={dashboardLoading} />
               </>
             ) : (
               <GuestInvestSection />
@@ -995,7 +864,7 @@ export default function HomeMiddleSections({
           </section>
         </SlideInContent>
         <SlideInContent direction="left" duration={0.7}>
-          <NewsBlogSection />
+          <NewsBlogSection insights={insights} loading={loading} error={error} />
         </SlideInContent>
         <SlideInContent direction="up" delay={0.08} duration={0.65}>
           <TestimonialsSection />

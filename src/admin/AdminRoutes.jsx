@@ -27,6 +27,7 @@ import BannersPage from './pages/content/BannersPage.jsx'
 import AdminTestimonialsPage from './pages/content/AdminTestimonialsPage.jsx'
 import SeoManagementPage from './pages/seo/SeoManagementPage.jsx'
 import AdminCreditChecksPage from './pages/credit/AdminCreditChecksPage.jsx'
+import CivilCheckerPaymentsPage from './pages/transactions/CivilCheckerPaymentsPage.jsx'
 import AdminSupportPage from './pages/support/AdminSupportPage.jsx'
 import ContentCreatorPage from './pages/content/ContentCreatorPage.jsx'
 import AdminNotificationsPage from './pages/notifications/AdminNotificationsPage.jsx'
@@ -65,6 +66,7 @@ export function AdminRouteTree() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="withdrawals" element={<WithdrawalsPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="civil-checker-payments" element={<RequirePermission permission="civil_score_payments"><CivilCheckerPaymentsPage /></RequirePermission>} />
         <Route path="news" element={<RequirePermission permission="news"><NewsPage /></RequirePermission>} />
         <Route path="blogs" element={<RequirePermission permission="blogs"><BlogsPage /></RequirePermission>} />
         <Route path="content-creator" element={<RequirePermission permission="content_creator"><ContentCreatorPage /></RequirePermission>} />

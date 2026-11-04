@@ -18,8 +18,8 @@ function money(value) {
 /**
  * Opens a print-ready report window so the user can Save as PDF.
  */
-export function downloadCreditReportPdf(report, { maskedPan } = {}) {
-  if (!report) return
+export function downloadCreditReportPdf(report, { maskedPan, targetWindow, autoPrint = true } = {}) {
+  if (!report) return false
   const bureau = bureauDisplayName(report.bureau)
   const pan = report.pan || maskedPan || '—'
   const accountsRows = (report.accounts || [])
@@ -87,13 +87,14 @@ export function downloadCreditReportPdf(report, { maskedPan } = {}) {
     <tbody>${enquiryRows || '<tr><td colspan="3">No enquiry records</td></tr>'}</tbody>
   </table>
   <p class="disclaimer">${escapeHtml(report.disclaimer || 'This report is generated from stored bureau data on MoneyTrend. For official disputes, contact the respective credit bureau.')}</p>
-  <script>window.onload = function () { window.print(); }</script>
+  ${autoPrint ? '<script>window.onload = function () { window.print(); }</script>' : ''}
 </body>
 </html>`
 
-  const win = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700')
-  if (!win) return
+  const win = targetWindow || window.open('', '_blank', 'noopener,noreferrer,width=900,height=700')
+  if (!win) return false
   win.document.open()
   win.document.write(html)
   win.document.close()
+  return true
 }
