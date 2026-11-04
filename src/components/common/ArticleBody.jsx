@@ -1,4 +1,4 @@
-import { isHtmlContent, sanitizeArticleHtml, unescapeApiHtml } from '../../lib/html.js'
+import { isHtmlContent, restoreStrippedArticleMarkup, sanitizeArticleHtml, unescapeApiHtml } from '../../lib/html.js'
 import '../../styles/blog-content.css'
 
 function pickHtml(html, content, excerpt) {
@@ -10,7 +10,8 @@ function pickHtml(html, content, excerpt) {
 
 function ArticleBody({ html, content, excerpt, className = '' }) {
   const body = pickHtml(html, content, excerpt)
-  const safe = sanitizeArticleHtml(unescapeApiHtml(body))
+  const normalized = restoreStrippedArticleMarkup(unescapeApiHtml(body))
+  const safe = sanitizeArticleHtml(normalized)
   if (!safe) return null
 
   if (!isHtmlContent(safe)) {

@@ -43,6 +43,40 @@
 .blog-content li[data-list="bullet"] { list-style: disc; }
 .blog-content li[data-list="ordered"] { list-style: decimal; }
 
+.blog-content address { margin: 0 0 1em; font-style: italic; }
+.blog-content details { margin: 0 0 1em; }
+.blog-content summary { cursor: pointer; font-weight: 700; }
+.blog-content dl { margin: 0 0 1em; }
+.blog-content dt { font-weight: 700; }
+.blog-content dd { margin: 0 0 0.5em 1.25rem; }
+.blog-content figure { margin: 1em 0; }
+.blog-content figcaption { color: #64748b; font-size: 0.875rem; margin-top: 0.4em; }
+.blog-content mark { background: #fef08a; color: inherit; padding: 0 0.15em; }
+.blog-content small { font-size: 0.875em; }
+.blog-content sub { vertical-align: sub; font-size: 0.75em; }
+.blog-content sup { vertical-align: super; font-size: 0.75em; }
+.blog-content pre,
+.blog-content code,
+.blog-content kbd,
+.blog-content samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.blog-content pre {
+  overflow-x: auto;
+  padding: 0.9rem 1rem;
+  margin: 0 0 1em;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+  white-space: pre-wrap;
+}
+.blog-content :not(pre) > code,
+.blog-content kbd,
+.blog-content samp {
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  background: #f1f5f9;
+}
+
 .blog-content blockquote {
   margin: 1em 0;
   padding-left: 1rem;
