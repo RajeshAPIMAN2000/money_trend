@@ -1,0 +1,44 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from './context/AuthContext.jsx'
+import { AuthModalProvider } from './context/AuthModalContext.jsx'
+import { CibilCheckProvider } from './context/CibilCheckContext.jsx'
+import { PaymentModalProvider } from './context/PaymentModalContext.jsx'
+import { WalletModalProvider } from './context/WalletModalContext.jsx'
+import { ToastProvider } from './context/ToastContext.jsx'
+import App from './App.jsx'
+import './index.css'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AuthProvider>
+          <AuthModalProvider>
+            <CibilCheckProvider>
+              <PaymentModalProvider>
+                <WalletModalProvider>
+                  <ToastProvider>
+                    <App />
+                  </ToastProvider>
+                </WalletModalProvider>
+              </PaymentModalProvider>
+            </CibilCheckProvider>
+          </AuthModalProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </React.StrictMode>,
+)

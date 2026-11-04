@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+  <defs>
+    <linearGradient id="fg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="40" height="40" rx="10" fill="url(#fg)"/>
+  <path d="M12 14h10c4.2 0 7 2.6 7 6.4 0 3-1.5 5-4 5.8L28 36h-5l-5.4-7.4H17v7.4h-5V14zm5 3.8v5.2h5c1.8 0 2.8-1 2.8-2.6s-1-2.6-2.8-2.6h-5z" fill="#fff"/>
+  <text x="52" y="33" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#0F172A">FinVault</text>
+</svg>

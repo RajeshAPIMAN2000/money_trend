@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="coinFace" cx="38%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#FFF3B0"/>
+      <stop offset="35%" stop-color="#F7D046"/>
+      <stop offset="65%" stop-color="#E0A824"/>
+      <stop offset="100%" stop-color="#B9820F"/>
+    </radialGradient>
+    <linearGradient id="coinRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE985"/>
+      <stop offset="50%" stop-color="#C9910E"/>
+      <stop offset="100%" stop-color="#8A5F08"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#12271C"/>
+  <g transform="translate(256 256) scale(0.88) translate(-620 -410)">
+    <circle cx="620" cy="410" r="210" fill="url(#coinRing)"/>
+    <circle cx="620" cy="410" r="196" fill="url(#coinFace)" stroke="#B9820F" stroke-width="3"/>
+    <circle cx="620" cy="410" r="174" fill="none" stroke="#C9910E" stroke-width="2.5" opacity="0.7"/>
+    <g fill="none" stroke="#12271C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M540 470 V 360 Q540 315 583 315 Q620 315 620 360 V 460"/>
+      <path d="M620 460 V 360 Q620 315 657 315 Q700 315 700 360 V 470"/>
+      <path d="M620 400 V 500 Q620 520 600 520 Q583 520 583 502"/>
+      <line x1="583" y1="400" x2="657" y2="400"/>
+    </g>
+  </g>
+</svg>
