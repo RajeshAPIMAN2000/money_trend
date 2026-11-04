@@ -1,5 +1,5 @@
 import { resolveMediaUrl, extractImagePath, extractAuthorName } from './media.js'
-import { articleHtmlFromApi, stripHtml } from './html.js'
+import { articleHtmlFromApi, restoreStrippedArticleMarkup, stripHtml } from './html.js'
 
 const unwrap = (payload) => payload?.data ?? payload ?? {}
 
@@ -47,7 +47,7 @@ function mapAdminArticleRow(item) {
   const content = html
 
   return {
-    id: item.id,
+    id: item.id ?? item.blog_id ?? item.news_id ?? item.article_id ?? item.blogId ?? item.newsId ?? item.articleId ?? item._id,
     title: stripHtml(rawTitle) || 'Untitled',
     titleHtml: rawTitle,
     category: category && String(category).trim() ? String(category) : '—',
@@ -107,9 +107,10 @@ export function buildArticleFormData(fields, { isSubAdmin = false } = {}) {
   const html = String(fields.content || fields.description || '')
   fd.append('heading', title)
   fd.append('title', title)
-  // The API's articleHtmlFromApi() treats `description` as the canonical body.
-  // Sending the same rich text in both fields can make backends that merge
-  // aliases persist the body more than once (seen on the Hostinger deployment).
+  // Keep both API aliases in sync. The backend accepts either field, and
+  // existing deployments may still read `content` while newer ones read
+  // `description`.
+  fd.append('content', html)
   fd.append('description', html)
   fd.append('category', fields.category ?? '')
 
@@ -151,7 +152,7 @@ export function articleToForm(item) {
   const plainTitle = item.titleHtml && /<[a-z]/i.test(item.titleHtml)
     ? String(item.title || '').trim()
     : String(item.titleHtml ?? item.title ?? item.heading ?? '').trim()
-  const html = unescapeApiHtml(item.description || item.content || articleHtmlFromApi(item.raw || item))
+  const html = restoreStrippedArticleMarkup(unescapeApiHtml(item.description || item.content || articleHtmlFromApi(item.raw || item)))
   return {
     title: plainTitle,
     description: html,

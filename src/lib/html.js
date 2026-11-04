@@ -35,7 +35,24 @@ export function unescapeApiHtml(value) {
 /** HTML from GET: description and content are the same stored string. */
 export function articleHtmlFromApi(item) {
   if (!item || typeof item !== 'object') return ''
-  return unescapeApiHtml(item.description || item.content || item.body || item.html_content || '')
+  return restoreStrippedArticleMarkup(unescapeApiHtml(item.description || item.content || item.body || item.html_content || ''))
+}
+
+/** Recover paragraph breaks from legacy API rows where angle brackets were stripped. */
+export function restoreStrippedArticleMarkup(value) {
+  const text = String(value || '').trim()
+  if (!text || /<\/?(?:p|h[1-6]|ul|ol|li|strong|em|br)\b/i.test(text)) return text
+  if (!/^p(?=[A-Z0-9])/m.test(text) && !/\/p\s*p(?=[A-Z0-9])/m.test(text)) return text
+
+  // Escape original text before inserting a small, known set of safe tags.
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  return escaped
+    .replace(/\/p\s*p(?=[A-Z0-9])/g, '</p><p>')
+    .replace(/^p(?=[A-Z0-9])/gm, '<p>')
+    .replace(/\/p\s*$/g, '</p>')
 }
 
 /**

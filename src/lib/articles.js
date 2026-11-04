@@ -55,7 +55,7 @@ function mapArticleItem(item, type = 'blog') {
   const bodyHtml = sanitizeArticleHtml(articleHtmlFromApi(item))
 
   return {
-    id: item.id,
+    id: item.id ?? item.blog_id ?? item.news_id ?? item.article_id ?? item.blogId ?? item.newsId ?? item.articleId ?? item._id,
     title: stripHtml(item.title ?? item.heading ?? item.name ?? '') || 'Untitled',
     excerpt: stripHtml(bodyHtml),
     content: bodyHtml,
