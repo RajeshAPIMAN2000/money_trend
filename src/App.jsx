@@ -19,6 +19,7 @@ const NewsArticle = lazy(() => import('./pages/NewsArticle.jsx'))
 const Terms = lazy(() => import('./pages/Terms.jsx'))
 const Privacy = lazy(() => import('./pages/Privacy.jsx'))
 const Refund = lazy(() => import('./pages/Refund.jsx'))
+const Cancellation = lazy(() => import('./pages/Cancellation.jsx'))
 const Products = lazy(() => import('./pages/Products.jsx'))
 const ManualKYCPage = lazy(() => import('./pages/onboarding/ManualKYCPage.jsx'))
 const NomineePage = lazy(() => import('./pages/onboarding/NomineePage.jsx'))
@@ -106,6 +107,7 @@ function PublicApp() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />
+          <Route path="/cancellation-policy" element={<Cancellation />} />
         </Routes>
       </main>
       <Footer />

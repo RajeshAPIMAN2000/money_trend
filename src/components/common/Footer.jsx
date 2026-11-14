@@ -39,6 +39,7 @@ const support = [
   { label: 'FAQs', to: '/support' },
   { label: 'Terms & Policies', to: '/terms' },
   { label: 'Refund Policy', to: '/refund' },
+  { label: 'Cancellation Policy', to: '/cancellation-policy' },
 ]
 
 const socialIcons = {
@@ -183,6 +184,9 @@ export default function Footer() {
             </Link>
             <Link to="/refund" className="text-white/60 hover:text-white transition-colors">
               Refund Policy
+            </Link>
+            <Link to="/cancellation-policy" className="text-white/60 hover:text-white transition-colors">
+              Cancellation Policy
             </Link>
           </div>
         </div>

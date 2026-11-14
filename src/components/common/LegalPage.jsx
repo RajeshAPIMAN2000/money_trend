@@ -42,6 +42,8 @@ export default function LegalPage({
           <Link to="/privacy" className="text-secondary hover:underline">Privacy Policy</Link>
           {' · '}
           <Link to="/refund" className="text-secondary hover:underline">Refund Policy</Link>
+          {' · '}
+          <Link to="/cancellation-policy" className="text-secondary hover:underline">Cancellation Policy</Link>
         </p>
       </footer>
     </article>

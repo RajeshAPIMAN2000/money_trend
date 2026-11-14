@@ -184,13 +184,23 @@ export const PAGE_BANNERS = {
   },
   refund: {
     eyebrow: 'Legal',
-    title: 'Refund',
-    highlight: 'Policy',
-    subtitle: 'Payment, cancellation and refund handling for FD/RD and other facilitated transactions.',
-    badges: ['Updated Sep 2026'],
+    title: 'Payment &',
+    highlight: 'Refund',
+    subtitle: 'Payment methods, failed transactions, duplicate payments and refund procedures for MoneyTrend services.',
+    badges: ['Updated Nov 2026'],
     accent: 'gold',
     variant: 'compact',
   },
+  cancellation: {
+    eyebrow: 'Legal',
+    title: 'Cancellation',
+    highlight: 'Policy',
+    subtitle: 'When and how customers may cancel a purchased credit report service on MoneyTrend.',
+    badges: ['Updated Nov 2026'],
+    accent: 'gold',
+    variant: 'compact',
+  },
+
   'blog-article': {
     eyebrow: 'MoneyTrend Blog',
     title: 'How to Start Your First',
