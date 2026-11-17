@@ -6,7 +6,7 @@ export default function KycSelectionModal({ open, onManual, onDigiLocker, onLate
   return (
     <Modal open={open} onClose={() => {}} title="Complete Your KYC" priority>
       <p className="text-sm text-slate-600 mb-6">
-        Choose how you'd like to verify your identity. KYC is required to access investment features.
+        Choose how you want to verify your identity. Admin will review and approve or reject your KYC for both options.
       </p>
       <div className="space-y-3">
         <button
@@ -19,7 +19,7 @@ export default function KycSelectionModal({ open, onManual, onDigiLocker, onLate
           </div>
           <div>
             <div className="font-semibold text-primary">Manual KYC</div>
-            <div className="text-xs text-slate-500">Upload Aadhaar & PAN documents</div>
+            <div className="text-xs text-slate-500">Upload Aadhaar &amp; PAN for admin verification</div>
           </div>
         </button>
         <button
@@ -31,8 +31,8 @@ export default function KycSelectionModal({ open, onManual, onDigiLocker, onLate
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <div className="font-semibold text-primary">DigiLocker KYC</div>
-            <div className="text-xs text-slate-500">Fetch verified documents from DigiLocker</div>
+            <div className="font-semibold text-primary">e-KYC</div>
+            <div className="text-xs text-slate-500">Open DigiLocker to verify — then admin approval</div>
           </div>
         </button>
       </div>
@@ -40,7 +40,9 @@ export default function KycSelectionModal({ open, onManual, onDigiLocker, onLate
         <Button variant="ghost" size="sm" onClick={onLater}>
           Do it later
         </Button>
-        <p className="text-[11px] text-slate-400 mt-2">Investment features will remain locked until KYC is complete</p>
+        <p className="text-[11px] text-slate-400 mt-2">
+          Investment features stay locked until an admin approves your KYC
+        </p>
       </div>
     </Modal>
   )

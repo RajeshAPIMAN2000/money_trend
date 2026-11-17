@@ -128,8 +128,15 @@ export default function KycReviewModal({
               </div>
             )}
 
-            {user.kycMethod === 'digilocker' && user.kyc.digilockerRef && (
-              <DetailItem label="DigiLocker Reference" value={user.kyc.digilockerRef} />
+            {user.kycMethod === 'digilocker' && (
+              <>
+                {user.kyc.digilockerRef && (
+                  <DetailItem label="DigiLocker Reference" value={user.kyc.digilockerRef} />
+                )}
+                <p className="text-xs text-slate-400">
+                  e-KYC via DigiLocker — document images are usually not available; review masked IDs and reference.
+                </p>
+              </>
             )}
           </>
         ) : (

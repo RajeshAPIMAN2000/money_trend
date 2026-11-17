@@ -146,12 +146,20 @@ export default function Dashboard() {
                     </p>
                   </div>
                   {!isKycPending(user.kyc_status) && (
-                    <Link
-                      to="/onboarding/kyc/manual"
-                      className="text-sm font-semibold text-secondary hover:underline whitespace-nowrap"
-                    >
-                      {user.kyc_status === 'rejected' ? 'Resubmit KYC' : 'Start KYC'} →
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Link
+                        to="/onboarding/kyc/manual"
+                        className="text-sm font-semibold text-secondary hover:underline whitespace-nowrap"
+                      >
+                        Manual KYC →
+                      </Link>
+                      <Link
+                        to="/onboarding/kyc/digilocker"
+                        className="text-sm font-semibold text-accent hover:underline whitespace-nowrap"
+                      >
+                        e-KYC (DigiLocker) →
+                      </Link>
+                    </div>
                   )}
                 </div>
               </div>

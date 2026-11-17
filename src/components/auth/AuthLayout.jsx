@@ -32,12 +32,15 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
         animate={{ opacity: 1, y: 0 }}
         className="relative w-full max-w-md"
       >
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-4 -mt-1">
           <Link
             to="/"
-            className="rounded-2xl bg-white px-4 py-3 shadow-sm border border-slate-100 inline-flex justify-center"
+            className="rounded-2xl bg-white px-3 py-2 shadow-sm border border-slate-100 inline-flex items-center justify-center overflow-hidden"
           >
-            <MoneyTrendLogo variant="auth" className="!h-20 sm:!h-24 !max-w-[14rem]" />
+            <MoneyTrendLogo
+              variant="auth"
+              className="!h-14 sm:!h-16 !max-w-[11rem] !object-contain !object-[center_22%]"
+            />
           </Link>
         </div>
         <div className="rounded-3xl bg-white p-8 shadow-[0_25px_60px_-20px_rgba(15,23,42,0.25)] border border-slate-200/80">

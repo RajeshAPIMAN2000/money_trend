@@ -42,7 +42,7 @@ export default function UsersPage() {
   })
 
   const rejectMutation = useMutation({
-    mutationFn: ({ userId, remarks }) => api.updateUserKycStatus(userId, { status: 'rejected', remarks }),
+    mutationFn: ({ userId, remarks }) => api.updateUserKycStatus(userId, { status: 'rejected', reason: remarks }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       setRejectOpen(false)

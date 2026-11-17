@@ -17,9 +17,10 @@ import {
 } from '../../../lib/adminUsers.js'
 
 const tabs = [
-  { id: 'pending', label: 'Pending' },
-  { id: 'approved', label: 'Approved' },
-  { id: 'rejected', label: 'Rejected' },
+  { id: 'pending', label: 'Pending / Review' },
+  { id: 'manual_review', label: 'Manual Review' },
+  { id: 'approved', label: 'Verified' },
+  { id: 'rejected', label: 'Failed / Rejected' },
   { id: 'all', label: 'All' },
 ]
 
@@ -63,7 +64,7 @@ export default function KYCPage() {
   })
 
   const rejectMutation = useMutation({
-    mutationFn: ({ userId, remarks }) => api.updateUserKycStatus(userId, { status: 'rejected', remarks }),
+    mutationFn: ({ userId, remarks }) => api.updateUserKycStatus(userId, { status: 'rejected', reason: remarks }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       setRejectOpen(false)
@@ -98,12 +99,12 @@ export default function KYCPage() {
 
   return (
     <PageShell
-      title="KYC Verification"
-      breadcrumb={['Home', 'User Management', 'KYC Verification']}
-      description="Review and approve user KYC submissions."
+      title="KYC Management"
+      breadcrumb={['Home', 'User Management', 'KYC Management']}
+      description="Manual and DigiLocker e-KYC. DigiLocker OTP/PIN never touch MoneyTrend. Aadhaar/PAN are masked by default."
       stats={[
-        { label: 'Pending Review', value: String(counts.pending) },
-        { label: 'Approved', value: String(counts.approved) },
+        { label: 'Pending / Review', value: String(counts.pending) },
+        { label: 'Verified', value: String(counts.approved) },
         { label: 'Rejected', value: String(counts.rejected) },
       ]}
     >
@@ -148,17 +149,20 @@ export default function KYCPage() {
         ) : (
           <DataTable
             columns={[
-              { key: 'name', label: 'User' },
-              { key: 'email', label: 'Email' },
-              { key: 'phone', label: 'Phone' },
-              { key: 'kycTypeLabel', label: 'KYC Type' },
+              { key: 'userId', label: 'Customer ID' },
+              { key: 'name', label: 'Name' },
+              { key: 'kycTypeLabel', label: 'Method' },
+              { key: 'aadhaarCheck', label: 'Aadhaar' },
+              { key: 'panCheck', label: 'PAN' },
+              { key: 'overallStatus', label: 'Overall' },
+              { key: 'digilockerRef', label: 'DigiLocker Ref' },
               { key: 'submittedLabel', label: 'Submitted' },
-              { key: 'kyc', label: 'Status' },
+              { key: 'kyc', label: 'KYC Status' },
             ]}
             rows={rows}
             avatarColumn="name"
             statusColumn="kyc"
-            searchPlaceholder="Search by name, email, phone..."
+            searchPlaceholder="Search customer ID, name, email, phone, DigiLocker ref..."
             actions={(row) => {
               const user = userMap[String(row.userId)]
               const showReviewActions = user && canReviewKyc(user)

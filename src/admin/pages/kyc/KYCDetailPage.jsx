@@ -33,7 +33,7 @@ export default function KYCDetailPage() {
   })
 
   const rejectMutation = useMutation({
-    mutationFn: (remarks) => api.updateUserKycStatus(userId, { status: 'rejected', remarks }),
+    mutationFn: (remarks) => api.updateUserKycStatus(userId, { status: 'rejected', reason: remarks }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       setRejectOpen(false)
@@ -132,14 +132,46 @@ export default function KYCDetailPage() {
             </Card>
           )}
 
-          {user.kycMethod === 'digilocker' && user.kyc?.digilockerRef && (
+          {user.kycMethod === 'digilocker' && (
             <Card>
               <CardContent className="pt-5">
-                <h3 className="font-semibold mb-4">DigiLocker Data</h3>
+                <h3 className="font-semibold mb-4">DigiLocker e-KYC</h3>
                 <dl className="grid sm:grid-cols-2 gap-3 text-sm">
-                  <div><dt className="text-slate-500">Reference ID</dt><dd className="font-medium">{user.kyc.digilockerRef}</dd></div>
-                  <div><dt className="text-slate-500">Status</dt><dd className="font-medium capitalize">{user.kyc.status}</dd></div>
+                  {user.kyc?.digilockerRef && (
+                    <div><dt className="text-slate-500">Reference ID</dt><dd className="font-medium">{user.kyc.digilockerRef}</dd></div>
+                  )}
+                  <div><dt className="text-slate-500">Status</dt><dd className="font-medium capitalize">{user.kyc?.status || user.kycStatus}</dd></div>
+                  {user.kyc?.panFullName && (
+                    <div><dt className="text-slate-500">Name on PAN</dt><dd className="font-medium">{user.kyc.panFullName}</dd></div>
+                  )}
+                  {user.kyc?.panNumber && (
+                    <div><dt className="text-slate-500">PAN (masked)</dt><dd className="font-medium">{user.kyc.panNumber}</dd></div>
+                  )}
+                  {user.kyc?.aadhaarNumber && (
+                    <div><dt className="text-slate-500">Aadhaar (masked)</dt><dd className="font-medium">{user.kyc.aadhaarNumber}</dd></div>
+                  )}
+                  <div><dt className="text-slate-500">Auth</dt><dd className="font-medium capitalize">{user.kyc?.authStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">Aadhaar check</dt><dd className="font-medium capitalize">{user.kyc?.aadhaarStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">PAN check</dt><dd className="font-medium capitalize">{user.kyc?.panStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">Name match</dt><dd className="font-medium capitalize">{user.kyc?.nameStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">DOB match</dt><dd className="font-medium capitalize">{user.kyc?.dobStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">Address</dt><dd className="font-medium capitalize">{user.kyc?.addressStatus || '—'}</dd></div>
+                  <div><dt className="text-slate-500">Overall</dt><dd className="font-medium capitalize">{user.kyc?.overallStatus || '—'}</dd></div>
+                  {user.kyc?.consentAt && (
+                    <div><dt className="text-slate-500">Consent time</dt><dd className="font-medium">{new Date(user.kyc.consentAt).toLocaleString()}</dd></div>
+                  )}
+                  {user.kyc?.verifiedAt && (
+                    <div><dt className="text-slate-500">Verified time</dt><dd className="font-medium">{new Date(user.kyc.verifiedAt).toLocaleString()}</dd></div>
+                  )}
                 </dl>
+                {user.kyc?.reviewReason && (
+                  <p className="mt-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                    {user.kyc.reviewReason}
+                  </p>
+                )}
+                <p className="mt-3 text-xs text-slate-400">
+                  DigiLocker OTP/PIN never reach MoneyTrend. Full Aadhaar is never stored. Only last4 / masked PAN and verification metadata are shown.
+                </p>
               </CardContent>
             </Card>
           )}

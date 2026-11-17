@@ -179,6 +179,13 @@ function ManualKYCForm() {
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? 'Submitting...' : 'Next → Nominee Details'}
         </Button>
+        <button
+          type="button"
+          className="w-full text-sm font-semibold text-secondary hover:underline"
+          onClick={() => navigate('/onboarding/kyc/digilocker')}
+        >
+          Prefer DigiLocker verification instead →
+        </button>
       </form>
     </AuthLayout>
   )

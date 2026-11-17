@@ -64,10 +64,15 @@ export function KycGate({ children }) {
               ? 'Your KYC was rejected. Please resubmit your documents.'
               : 'Complete your KYC to access investment features.'}
         </p>
-        {user?.kyc_status !== 'pending' && (
-          <a href="/onboarding/kyc/manual" className="inline-block mt-6 text-sm font-semibold text-secondary hover:underline">
-            {user?.kyc_status === 'rejected' ? 'Resubmit KYC' : 'Complete KYC'} →
-          </a>
+        {user?.kyc_status !== 'pending' && user?.kyc_status !== 'submitted' && (
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+            <a href="/onboarding/kyc/manual" className="text-sm font-semibold text-secondary hover:underline">
+              Manual KYC →
+            </a>
+            <a href="/onboarding/kyc/digilocker" className="text-sm font-semibold text-accent hover:underline">
+              e-KYC (DigiLocker) →
+            </a>
+          </div>
         )}
       </div>
     )

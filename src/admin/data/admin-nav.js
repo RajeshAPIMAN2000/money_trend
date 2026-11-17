@@ -21,7 +21,7 @@ export const adminNav = [
       { label: 'Users', path: '/admin/users', icon: Users },
       { label: 'Goals', path: '/admin/goals', icon: Target },
       { label: 'Employees', path: '/admin/sub-admins', icon: UserCog },
-      { label: 'KYC Verification', path: '/admin/kyc', icon: ShieldCheck },
+      { label: 'KYC Management', path: '/admin/kyc', icon: ShieldCheck },
     ],
   },
   {

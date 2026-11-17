@@ -7,8 +7,8 @@ const variants = {
   navbar: 'block h-[85px] w-[85px] object-contain object-left shrink-0',
   /** Footer — larger crop, gold coin visible on dark background */
   footer: 'block h-16 sm:h-20 w-[11rem] sm:w-[12.5rem] object-cover object-[center_20%] shrink-0',
-  /** Full logo for auth modals */
-  auth: 'block h-36 sm:h-44 w-auto max-w-[min(100%,20rem)] object-contain mx-auto',
+  /** Full logo for auth modals — crop lifts mark so it does not sit low in the box */
+  auth: 'block h-28 sm:h-32 w-auto max-w-[min(100%,16rem)] object-contain object-[center_22%] mx-auto',
   /** Compact icon crop */
   icon: 'block h-10 w-10 object-cover object-[center_18%] rounded-full shrink-0',
   md: 'block h-14 w-36 object-cover object-[center_22%]',

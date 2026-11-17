@@ -57,6 +57,21 @@ export function getPostAuthPath(nextStep) {
   }
 }
 
+/** True when the user still needs to start/redo KYC (show Manual / e-KYC reminder). */
+export function shouldPromptKyc(authResult) {
+  if (!authResult) return false
+  if (String(authResult.nextStep || '').toLowerCase() === 'kyc') return true
+
+  const status = String(
+    authResult.user?.kyc_status
+    ?? authResult.kyc?.kyc_status
+    ?? authResult.kyc?.status
+    ?? 'not_started',
+  ).toLowerCase()
+
+  return ['not_started', 'rejected', '', 'null', 'undefined'].includes(status)
+}
+
 export function extractOtpMeta(response) {
   const root = response?.data ?? response ?? {}
   const channel = String(root.channel ?? root.delivery ?? root.otp_channel ?? '').toLowerCase()

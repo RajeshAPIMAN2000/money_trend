@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Upload, X, CheckCircle2 } from 'lucide-react'
 import AuthLayout from '../../components/auth/AuthLayout.jsx'
 import FormInput from '../../components/auth/FormInput.jsx'
 import Button from '../../components/ui/Button.jsx'
 import { RequireAuth } from '../../components/auth/ProtectedRoute.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { useToast } from '../../context/ToastContext.jsx'
 import { api, ApiError, getToken } from '../../lib/api.js'
 import { parseProfileNominee } from '../../lib/nominee.js'
 import {
@@ -92,7 +93,10 @@ function AlreadyAddedView({ nominee, onContinue }) {
 
 function NomineeForm() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { updateUser, hasNominee, user } = useAuth()
+  const { showToast } = useToast()
+  const digilockerToastShown = useRef(false)
   const [checking, setChecking] = useState(true)
   const [existingNominee, setExistingNominee] = useState(null)
   const [alreadyAdded, setAlreadyAdded] = useState(Boolean(hasNominee))
@@ -119,6 +123,22 @@ function NomineeForm() {
 
   const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
   const minor = isMinor(form.dob)
+
+  useEffect(() => {
+    const fromDigi =
+      String(params.get('from') || '').toLowerCase() === 'digilocker' ||
+      String(params.get('kyc_method') || '').toLowerCase() === 'digilocker' ||
+      String(params.get('status') || '').toLowerCase() === 'success'
+    if (!fromDigi || digilockerToastShown.current) return
+    digilockerToastShown.current = true
+    const kycStatus = String(params.get('kyc_status') || 'submitted').toLowerCase()
+    updateUser({
+      kyc_status: kycStatus,
+      kyc_method: 'digilocker',
+      kyc_type: 'digilocker',
+    })
+    showToast('DigiLocker KYC completed. Please add your nominee details.', 'success')
+  }, [params, showToast, updateUser])
 
   useEffect(() => {
     let cancelled = false

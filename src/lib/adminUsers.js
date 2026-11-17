@@ -122,7 +122,13 @@ function parseAdminUserRecord(user) {
     creditCheckedAt: formatCreditDate(cibilMeta.checked_at ?? cibilMeta.checkedAt ?? creditMeta.checked_at),
     goals: [],
     kyc: {
-      submitted: Boolean(kyc.submitted || kyc.pan_number || kyc.aadhaar_number),
+      submitted: Boolean(
+        kyc.submitted
+        || kyc.pan_number
+        || kyc.aadhaar_number
+        || kyc.digilocker_ref
+        || ['submitted', 'pending', 'verified', 'approved', 'rejected'].includes(String(kycStatus).toLowerCase()),
+      ),
       message: kyc.message ?? '',
       status: kyc.status ?? kycStatus,
       method: kyc.method ?? kycMethod,
@@ -133,6 +139,19 @@ function parseAdminUserRecord(user) {
       aadhaarImage: resolveUploadUrl(kyc.aadhaar_image),
       digilockerRef: kyc.digilocker_ref ?? null,
       createdAt: kyc.created_at,
+      updatedAt: kyc.updated_at ?? null,
+      verification: kyc.verification || user.digilocker_verification || null,
+      aadhaarStatus: kyc.aadhaar_status || user.digilocker?.aadhaar_status || null,
+      panStatus: kyc.pan_status || user.digilocker?.pan_status || null,
+      authStatus: kyc.auth_status || user.digilocker?.auth_status || null,
+      nameStatus: kyc.name_status || user.digilocker?.name_status || null,
+      dobStatus: kyc.dob_status || user.digilocker?.dob_status || null,
+      addressStatus: kyc.address_status || user.digilocker?.address_status || null,
+      overallStatus: kyc.overall_status || user.digilocker?.overall_status || null,
+      reviewReason: kyc.review_reason || user.digilocker?.review_reason || null,
+      consentAt: kyc.consent_at || user.digilocker?.consent_at || null,
+      verifiedAt: kyc.verified_at || user.digilocker?.verified_at || null,
+      consentRef: kyc.consent_ref || user.digilocker?.consent_ref || null,
     },
     nominee: (nominee.added || nominee.nominee_name || nominee.name)
       ? {
@@ -214,6 +233,7 @@ export function buildAdminUserNomineeFormData(form, panFile, aadhaarFile) {
 }
 
 export function mapUserToTableRow(user) {
+  const overall = String(user.kyc?.overallStatus || user.digilocker?.overall_status || '').toUpperCase()
   return {
     id: user.id,
     userId: user.id,
@@ -227,13 +247,44 @@ export function mapUserToTableRow(user) {
     creditScore: user.creditScoreLabel,
     joined: user.joined,
     submittedLabel: user.kyc?.createdAt ? formatDate(user.kyc.createdAt) : '—',
+    aadhaarCheck: user.kyc?.aadhaarStatus || '—',
+    panCheck: user.kyc?.panStatus || '—',
+    overallStatus: overall || '—',
+    digilockerRef: user.kyc?.digilockerRef || '—',
+    reviewReason: user.kyc?.reviewReason || '',
     status: 'Active',
   }
 }
 
 export function filterUsersByKycTab(users, tab) {
   if (tab === 'all') return users
+  if (tab === 'manual_review') {
+    return users.filter((user) => String(user.kyc?.overallStatus || '').toUpperCase() === 'MANUAL_REVIEW')
+  }
+  if (tab === 'pending') {
+    return users.filter((user) => {
+      const overall = String(user.kyc?.overallStatus || '').toUpperCase()
+      const status = normalizeKycStatus(user.kycStatus)
+      return status === 'pending' || overall === 'PENDING' || overall === 'MANUAL_REVIEW' || status === 'pending'
+    })
+  }
   return users.filter((user) => normalizeKycStatus(user.kycStatus) === tab)
+}
+
+export function filterUsersBySearch(users, query) {
+  const q = String(query || '').trim().toLowerCase()
+  if (!q) return users
+  return users.filter((user) => {
+    const hay = [
+      user.id,
+      user.name,
+      user.email,
+      user.phone,
+      user.kyc?.digilockerRef,
+      user.kyc?.panFullName,
+    ].map((v) => String(v || '').toLowerCase()).join(' ')
+    return hay.includes(q)
+  })
 }
 
 export function countUsersByKycStatus(users) {

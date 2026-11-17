@@ -15,7 +15,7 @@ import { useAuthModal } from '../../context/AuthModalContext.jsx'
 import { useToast } from '../../context/ToastContext.jsx'
 import { authApi } from '../../lib/authApi.js'
 import { api, ApiError } from '../../lib/api.js'
-import { extractOtpMeta, getPostAuthPath } from '../../lib/auth.js'
+import { extractOtpMeta, getPostAuthPath, shouldPromptKyc } from '../../lib/auth.js'
 import { useOtpCountdown } from '../../hooks/useOtpCountdown.js'
 import { EMAIL_RE, PHONE_RE } from '../../lib/validators.js'
 
@@ -320,7 +320,16 @@ export default function AuthModal() {
   const { view, close, openLogin, openRegister, openForgot, showKycModal, setShowKycModal } = useAuthModal()
 
   const handleAuthSuccess = async (result, fallbackMessage) => {
+    // Close login/register first, then open KYC reminder while AuthModal stays mounted
+    // (GlobalModalHost keeps it alive when showKycModal is true).
     close()
+    showToast(result?.message || fallbackMessage)
+
+    if (shouldPromptKyc(result)) {
+      setShowKycModal(true)
+      return
+    }
+
     const destination = getPostAuthPath(result?.nextStep)
 
     // If backend says "nominee" but user already has one, skip that step
@@ -330,7 +339,6 @@ export default function AuthModal() {
         const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
         if (nominee?.added || nominee?.nominee_name) {
           navigate('/dashboard')
-          showToast(result?.message || fallbackMessage)
           return
         }
       } catch {
@@ -340,10 +348,10 @@ export default function AuthModal() {
 
     if (destination.type === 'kyc') {
       setShowKycModal(true)
-    } else {
-      navigate(destination.path)
+      return
     }
-    showToast(result?.message || fallbackMessage)
+
+    navigate(destination.path)
   }
 
   const handleManualKyc = () => {
@@ -351,29 +359,10 @@ export default function AuthModal() {
     navigate('/onboarding/kyc/manual')
   }
 
-  const handleDigiLocker = async () => {
+  // e-KYC → DigiLocker flow page (user connects DigiLocker; admin still approves/rejects)
+  const handleDigiLocker = () => {
     setShowKycModal(false)
-    try {
-      const session = await api.initDigiLocker()
-      if (session.isStub) {
-        await api.completeDigiLockerStub()
-        try {
-          const profileRes = await api.getProfile()
-          const nominee = profileRes?.data?.nominee ?? profileRes?.nominee
-          if (nominee?.added || nominee?.nominee_name) {
-            navigate('/dashboard')
-            return
-          }
-        } catch {
-          // fall through
-        }
-        navigate('/onboarding/nominee')
-      } else {
-        window.location.href = session.authUrl
-      }
-    } catch {
-      navigate('/onboarding/kyc/digilocker')
-    }
+    navigate('/onboarding/kyc/digilocker')
   }
 
   const handleLater = () => {

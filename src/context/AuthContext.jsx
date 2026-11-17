@@ -20,13 +20,24 @@ export function AuthProvider({ children }) {
     if (!parsed.accessToken) {
       throw new ApiError(response?.message || 'Authentication response missing access token', 500, response)
     }
+    const kycStatus = parsed.user?.kyc_status
+      ?? parsed.kyc?.kyc_status
+      ?? parsed.kyc?.status
+      ?? 'not_started'
+    const user = parsed.user
+      ? {
+          ...parsed.user,
+          kyc_status: kycStatus,
+          kyc_method: parsed.user.kyc_method ?? parsed.kyc?.method ?? parsed.kyc?.kyc_method,
+        }
+      : parsed.user
     persistAuthSession({
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
-      user: parsed.user,
+      user,
     })
-    setUser(parsed.user)
-    return parsed
+    setUser(user)
+    return { ...parsed, user }
   }, [])
 
   const logout = useCallback(() => {

@@ -26,7 +26,8 @@ async function request(path, options = {}) {
     credentials: 'include',
     ...rest,
     headers: {
-      ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+      // Only set JSON content-type when a body is sent (empty DigiLocker POSTs stay body-less)
+      ...(body instanceof FormData || body === undefined ? {} : { 'Content-Type': 'application/json' }),
       'Cache-Control': 'no-cache',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
@@ -59,11 +60,21 @@ async function request(path, options = {}) {
 export const api = {
   getMe: () => request('/auth/me'),
 
-  // KYC
+  // KYC — Manual + DigiLocker e-KYC (user JWT)
   submitManualKyc: (formData) => request('/kyc/manual', { method: 'POST', body: formData }),
+  /** POST /api/digilocker/start (alias /api/kyc/digilocker/init) — empty body */
   initDigiLocker: () => request('/kyc/digilocker/init', { method: 'POST' }),
+  startDigiLocker: () => request('/digilocker/start', { method: 'POST' }),
+  /** Dev only when start returns isStub: true */
   completeDigiLockerStub: () => request('/kyc/digilocker/complete-stub', { method: 'POST' }),
-  getKycStatus: () => request('/kyc/status'),
+  /** GET /api/digilocker/status — own KYC / DigiLocker status only */
+  getDigiLockerStatus: () => request('/digilocker/status'),
+  /** GET|POST /api/digilocker/documents — issued-doc metadata only */
+  getDigiLockerDocuments: () => request('/digilocker/documents'),
+  postDigiLockerDocuments: () => request('/digilocker/documents', { method: 'POST' }),
+  /** POST /api/digilocker/revoke — only when partner enables revoke */
+  revokeDigiLocker: () => request('/digilocker/revoke', { method: 'POST' }),
+  getKycStatus: () => request('/digilocker/status'),
 
   // Nominee — POST /api/kyc/nominee (multipart)
   submitNominee: (formData) => request('/kyc/nominee', { method: 'POST', body: formData }),
@@ -86,12 +97,29 @@ export const api = {
     })
   },
   getAdminDashboard: () => request('/admin/dashboard', { admin: true }),
-  getAdminUsers: () => request('/admin/users', { admin: true }),
+  getAdminUsers: (params = {}) => {
+    const q = new URLSearchParams(
+      Object.fromEntries(
+        Object.entries(params).filter(([, v]) => v != null && v !== ''),
+      ),
+    ).toString()
+    return request(`/admin/users${q ? `?${q}` : ''}`, { admin: true })
+  },
   getAdminUser: (id) => request(`/admin/users/${encodeURIComponent(id)}`, { admin: true }),
   getAdminUserGoals: (id) =>
     request(`/admin/users/${encodeURIComponent(id)}/goals`, { admin: true }),
-  updateUserKycStatus: (id, body) =>
-    request(`/admin/users/${encodeURIComponent(id)}/kyc-status`, { method: 'PATCH', body, admin: true }),
+  /** PATCH /api/admin/users/:id/kyc-status — { status: 'approved' } | { status: 'rejected', reason } */
+  updateUserKycStatus: (id, body) => {
+    const status = body?.status
+    const reason = body?.reason ?? body?.remarks
+    const payload = { status }
+    if (reason != null && String(reason).trim()) payload.reason = String(reason).trim()
+    return request(`/admin/users/${encodeURIComponent(id)}/kyc-status`, {
+      method: 'PATCH',
+      body: payload,
+      admin: true,
+    })
+  },
 
   /** Admin create-user flow (same payloads as register + KYC + nominee) */
   sendAdminUserEmailOtp: (body) =>
