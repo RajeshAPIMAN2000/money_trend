@@ -21,7 +21,7 @@ import {
   initialsFromName,
 } from '../lib/userProfile.js'
 import { EMAIL_RE, PHONE_RE, RELATIONSHIPS } from '../lib/validators.js'
-import { ApiError } from '../lib/api.js'
+import { api, ApiError } from '../lib/api.js'
 
 const TABS = ['Personal', 'Bank Accounts', 'Nominees']
 
@@ -38,6 +38,8 @@ function Field({ label, value }) {
 
 function PersonalTab({ profile, onSaved }) {
   const { showToast } = useToast()
+  const { logout } = useAuth()
+  const [deactivating, setDeactivating] = useState(false)
   const updateMutation = useUpdateProfile()
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState('')
@@ -114,6 +116,41 @@ function PersonalTab({ profile, onSaved }) {
         <p className="text-xs text-slate-500 mt-4">
           PAN and Aadhaar cannot be edited from profile. Contact support if a correction is needed.
         </p>
+
+        <div className="mt-8 pt-6 border-t border-slate-200">
+          <h4 className="font-semibold text-primary text-sm">Temporarily deactivate account</h4>
+          <p className="text-xs text-slate-500 mt-1 mb-3">
+            While deactivated you will not receive emails. Sign in again with your email and password to reactivate.
+          </p>
+          {error && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-btn text-sm text-red-600">{error}</div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-600 border-red-200"
+            disabled={deactivating}
+            onClick={async () => {
+              const ok = window.confirm(
+                'Deactivate your account temporarily? You can reactivate anytime by logging in with email and password.'
+              )
+              if (!ok) return
+              setDeactivating(true)
+              setError('')
+              try {
+                await api.deactivateAccount({ reason: 'User requested temporary deactivation' })
+                showToast('Account deactivated')
+                logout()
+              } catch (err) {
+                setError(err instanceof ApiError ? err.message : 'Failed to deactivate account')
+              } finally {
+                setDeactivating(false)
+              }
+            }}
+          >
+            {deactivating ? 'Deactivating…' : 'Deactivate account'}
+          </Button>
+        </div>
       </>
     )
   }

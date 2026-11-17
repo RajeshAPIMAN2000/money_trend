@@ -112,6 +112,8 @@ function parseAdminUserRecord(user) {
     kycStatusLabel: formatKycStatusLabel(kycStatus),
     kycMethod,
     kycMethodLabel: kycMethod === 'digilocker' ? 'DigiLocker' : kycMethod === 'manual' ? 'Manual' : '—',
+    accountStatus: String(user.account_status || 'active').toLowerCase(),
+    accountStatusReason: user.account_status_reason || null,
     joined: formatDate(user.created_at),
     updatedAt: user.updated_at,
     createdAt: user.created_at,
@@ -252,7 +254,13 @@ export function mapUserToTableRow(user) {
     overallStatus: overall || '—',
     digilockerRef: user.kyc?.digilockerRef || '—',
     reviewReason: user.kyc?.reviewReason || '',
-    status: 'Active',
+    accountStatus: user.accountStatus || 'active',
+    status:
+      user.accountStatus === 'inactive'
+        ? 'Inactive'
+        : user.accountStatus === 'deactivated'
+          ? 'Deactivated'
+          : 'Active',
   }
 }
 

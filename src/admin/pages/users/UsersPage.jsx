@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Eye, Pencil } from 'lucide-react'
+import { Plus, Eye, Pencil, UserX, UserCheck, Trash2 } from 'lucide-react'
 import PageShell from '../../components/shared/PageShell.jsx'
 import DataTable from '../../components/shared/DataTable.jsx'
 import AdminModal from '../../components/shared/AdminModal.jsx'
@@ -54,9 +54,41 @@ export default function UsersPage() {
     onError: (err) => setRejectError(err instanceof ApiError ? err.message : 'Rejection failed'),
   })
 
+  const accountStatusMutation = useMutation({
+    mutationFn: ({ userId, status }) => api.updateUserAccountStatus(userId, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    },
+  })
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId) => api.deleteAdminUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      setViewUser(null)
+    },
+  })
+
   const openView = (row) => {
     const user = userMap[String(row.id)]
     if (user) setViewUser(user)
+  }
+
+  const toggleAccountStatus = (row) => {
+    const user = userMap[String(row.id)]
+    if (!user) return
+    const isInactive = String(user.accountStatus || row.accountStatus || 'active') === 'inactive'
+    const next = isInactive ? 'active' : 'inactive'
+    const label = next === 'inactive' ? 'inactivate' : 'activate'
+    if (!window.confirm(`Are you sure you want to ${label} ${user.name || row.name}?`)) return
+    accountStatusMutation.mutate({ userId: user.id, status: next })
+  }
+
+  const confirmDeleteUser = (row) => {
+    const user = userMap[String(row.id)]
+    if (!user) return
+    if (!window.confirm(`Permanently delete ${user.name || row.name}? This cannot be undone.`)) return
+    deleteUserMutation.mutate(user.id)
   }
 
   return (
@@ -98,23 +130,45 @@ export default function UsersPage() {
           rows={rows}
           avatarColumn="name"
           statusColumn="status"
-          filters={['Active']}
+          filters={['Active', 'Inactive', 'Deactivated']}
           searchPlaceholder="Search users..."
-          actions={(row) => (
-            <>
-              <button
-                type="button"
-                onClick={() => openView(row)}
-                className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 text-blue-600"
-                title="View details"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-              <Link to={`/admin/users/${row.id}/edit`} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
-                <Pencil className="w-4 h-4" />
-              </Link>
-            </>
-          )}
+          actions={(row) => {
+            const isInactive = String(row.accountStatus || row.status || '').toLowerCase() === 'inactive'
+              || String(row.status || '').toLowerCase() === 'inactive'
+            return (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openView(row)}
+                  className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 text-blue-600"
+                  title="View details"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <Link to={`/admin/users/${row.id}/edit`} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400" title="Edit">
+                  <Pencil className="w-4 h-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => toggleAccountStatus(row)}
+                  disabled={accountStatusMutation.isPending}
+                  className={`p-1.5 rounded-lg ${isInactive ? 'hover:bg-emerald-50 text-emerald-600' : 'hover:bg-amber-50 text-amber-600'}`}
+                  title={isInactive ? 'Activate user' : 'Inactivate user'}
+                >
+                  {isInactive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => confirmDeleteUser(row)}
+                  disabled={deleteUserMutation.isPending}
+                  className="p-1.5 rounded-lg hover:bg-red-50 text-red-600"
+                  title="Delete user permanently"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )
+          }}
         />
       )}
 

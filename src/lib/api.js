@@ -120,6 +120,16 @@ export const api = {
       admin: true,
     })
   },
+  /** PATCH /api/admin/users/:id/account-status — { status: 'active' | 'inactive', reason? } */
+  updateUserAccountStatus: (id, body) =>
+    request(`/admin/users/${encodeURIComponent(id)}/account-status`, {
+      method: 'PATCH',
+      body,
+      admin: true,
+    }),
+  /** DELETE /api/admin/users/:id — permanent delete */
+  deleteAdminUser: (id) =>
+    request(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE', admin: true }),
 
   /** Admin create-user flow (same payloads as register + KYC + nominee) */
   sendAdminUserEmailOtp: (body) =>
@@ -481,6 +491,9 @@ export const api = {
   // User profile portfolio — GET /api/profile/portfolio (JWT required)
   getProfilePortfolio: () => request('/profile/portfolio'),
   getProfile: () => request('/profile'),
+  /** POST /api/profile/deactivate — temporary self-deactivation */
+  deactivateAccount: (body = {}) =>
+    request('/profile/deactivate', { method: 'POST', body }),
   updateProfile: (userId, body) =>
     request(`/profile/${encodeURIComponent(userId)}`, { method: 'PUT', body }),
   getBankAccount: () => request('/profile/bank-account'),
